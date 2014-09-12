@@ -14,16 +14,14 @@ pub struct LogWriterOptions<'a> {
 
 impl<'a> LogWriter<'a> {
 
-// function getCommitLink(repository, hash) {
-//   var shortHash = hash.substring(0,8); // no need to show super long hash in log
-//   return repository ?
-//     util.format(LINK_COMMIT, shortHash, repository, hash) :
-//     util.format(COMMIT, shortHash);
-// }
-
     fn get_commit_link (repository: &String, hash: &String) -> String {
         let short_hash = hash.as_slice().slice_chars(0,8);
-        format!("[{}]({}/commit/{})", short_hash, repository, hash)
+        if repository.len() > 0 {
+            format!("[{}]({}/commit/{})", short_hash, repository, hash)
+        }
+        else {
+            format!("({})", short_hash)
+        }
     }
 
     pub fn write_section (&mut self, title: &str, section: &HashMap<String, Vec<LogEntry>>) {
