@@ -8,8 +8,7 @@ pub struct LogWriter<'a> {
 }
 
 pub struct LogWriterOptions<'a> {
-    pub repository_link: String,
-    //pub writer: &'a mut Writer+'a
+    pub repository_link: String
 }
 
 impl<'a> LogWriter<'a> {
