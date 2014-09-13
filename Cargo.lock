@@ -1,4 +1,21 @@
 [root]
 name = "clog"
 version = "0.0.1"
+dependencies = [
+ "docopt 0.6.3 (git+https://github.com/docopt/docopt.rs#da4e1ba9c416afb60999817e69618ab00cc1188a)",
+ "docopt_macros 0.6.3 (git+https://github.com/docopt/docopt.rs#da4e1ba9c416afb60999817e69618ab00cc1188a)",
+]
+
+[[package]]
+name = "docopt"
+version = "0.6.3"
+source = "git+https://github.com/docopt/docopt.rs#da4e1ba9c416afb60999817e69618ab00cc1188a"
+
+[[package]]
+name = "docopt_macros"
+version = "0.6.3"
+source = "git+https://github.com/docopt/docopt.rs#da4e1ba9c416afb60999817e69618ab00cc1188a"
+dependencies = [
+ "docopt 0.6.3 (git+https://github.com/docopt/docopt.rs#da4e1ba9c416afb60999817e69618ab00cc1188a)",
+]
 
