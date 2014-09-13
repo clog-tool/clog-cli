@@ -7,4 +7,7 @@
 #### Features
 
 
-* **main**  add basic functionality ([05199ce1](https://github.com/thoughtram/clog/commit/05199ce128315f03204a3fc4722440a753bfdccc))
+* **Readme**  describe basic usage ([e85854f3](https://github.com/thoughtram/clog/commit/e85854f3840e8b77b0a385200bb17ea0ea6b75ab))
+* **main**
+  *  parse --repository option from CLI ([12a85460](https://github.com/thoughtram/clog/commit/12a85460a3149a9dea6510e9ee9bb648960be217))
+  *  add basic functionality ([05199ce1](https://github.com/thoughtram/clog/commit/05199ce128315f03204a3fc4722440a753bfdccc))
