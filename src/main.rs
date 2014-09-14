@@ -9,6 +9,7 @@ extern crate regex_macros;
 extern crate serialize;
 #[phase(plugin)] extern crate docopt_macros;
 extern crate docopt;
+extern crate time;
 
 use git::{ LogReaderConfig, get_commits };
 use log_writer::{ LogWriter, LogWriterOptions };
@@ -24,7 +25,7 @@ mod section_builder;
 docopt!(Args, "clog
 
                Usage:
-                 clog [--repository=<link>]
+                 clog [--repository=<link> --setversion=<version> --subtitle=<subtitle>]
 
                Options:
                   -h --help     Show this screen.
@@ -46,9 +47,12 @@ fn main () {
     let sections = build_sections(commits.clone());
     let mut file = File::open_mode(&Path::new("changelog.md"), Open, Write).ok().unwrap();
     let mut writer = LogWriter::new(&mut file, LogWriterOptions { 
-        repository_link: args.flag_repository 
+        repository_link: args.flag_repository,
+        version: args.flag_setversion,
+        subtitle: args.flag_subtitle
     });
 
+    writer.write_header();
     writer.write_section("Bug Fixes", &sections.fixes);
     writer.write_section("Features", &sections.features);
     //println!("{}", commits);

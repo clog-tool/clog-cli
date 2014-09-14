@@ -1,5 +1,6 @@
 use std::collections::hashmap::HashMap;
 use std::io::Writer;
+use time::now_utc;
 use common::{ LogEntry };
 
 pub struct LogWriter<'a> {
@@ -8,7 +9,9 @@ pub struct LogWriter<'a> {
 }
 
 pub struct LogWriterOptions<'a> {
-    pub repository_link: String
+    pub repository_link: String,
+    pub version: String,
+    pub subtitle: String
 }
 
 impl<'a> LogWriter<'a> {
@@ -20,6 +23,27 @@ impl<'a> LogWriter<'a> {
         }
         else {
             format!("({})", short_hash)
+        }
+    }
+
+    pub fn write_header (&mut self) {
+
+        let subtitle = match self.options.subtitle.len() {
+            0 => self.options.subtitle.clone(),
+            _ => format!(" {}", self.options.subtitle)
+        };
+
+        let version_text = format!("## {}{}", self.options.version, subtitle);
+    
+        fn get_date () -> String {
+            now_utc().strftime("%Y-%m-%d")
+        }
+
+        if self.options.repository_link.len() > 0 {
+            self.writer.write(format!("{} ({})\n\n", version_text, get_date()).as_bytes());
+        }
+        else {
+            self.writer.write(format!("<a name=\"{}\"</a>\n{} ({})\n\n", self.options.version, version_text, get_date()).as_bytes());
         }
     }
 
