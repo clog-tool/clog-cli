@@ -10,12 +10,20 @@ pub struct LogReaderConfig {
 }
 
 pub fn get_commits (config:LogReaderConfig) -> Vec<LogEntry>{
+
+    let range = if config.from.len() == 0 {
+        "HEAD".to_string()
+    }
+    else {
+        format!("{}..{}", config.from, config.to)
+    };
+
     Command::new("git")
             .arg("log")
             .arg("-E")
             .arg(format!("--grep={}",config.grep))
             .arg(format!("--format={}", "%H%n%s%n%b%n==END=="))
-            //.arg("FROM..TO")
+            .arg(range)
             .spawn()
             .ok().expect("failed to invoke `git log`")
             .stdout.get_mut_ref().read_to_string()

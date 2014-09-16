@@ -24,13 +24,13 @@ mod section_builder;
 
 docopt!(Args, "clog
 
-               Usage:
-                 clog [--repository=<link> --setversion=<version> --subtitle=<subtitle>]
+Usage:
+  clog [--repository=<link> --setversion=<version> --subtitle=<subtitle> --from=<from> --to=<to>]
 
-               Options:
-                  -h --help     Show this screen.
-                  --version     Show version
-                  --repository=<link>  e.g https://github.com/thoughtram/clog")
+Options:
+  -h --help     Show this screen.
+  --version     Show version
+  --repository=<link>  e.g https://github.com/thoughtram/clog")
 
 fn main () {
 
@@ -39,8 +39,8 @@ fn main () {
     let log_reader_config = LogReaderConfig {
         grep: "^feat|^fix|BREAKING'".to_string(),
         format: "%H%n%s%n%b%n==END==".to_string(),
-        from: "".to_string(),
-        to: "HEAD".to_string()
+        from: args.flag_from,
+        to: args.flag_to
     };
     let commits = get_commits(log_reader_config);
 
