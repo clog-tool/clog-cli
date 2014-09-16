@@ -2,11 +2,26 @@ use std::io::Command;
 use regex::Regex;
 use common:: { LogEntry, Feature, Fix, Unknown };
 
+#[deriving(Show)]
 pub struct LogReaderConfig {
     pub grep: String,
     pub format: String,
     pub from: String,
     pub to: String
+}
+
+pub fn get_latest_tag () -> String {
+
+    Command::new("git")
+            .arg("rev-list")
+            .arg("--tags")
+            .arg("--max-count=1")
+            .spawn()
+            .ok().expect("failed to invoke ref-list")
+            .stdout.get_mut_ref().read_to_string()
+            .ok().expect("failed to get latest git log")
+            .as_slice().trim_chars('\n')
+            .to_string()
 }
 
 pub fn get_commits (config:LogReaderConfig) -> Vec<LogEntry>{

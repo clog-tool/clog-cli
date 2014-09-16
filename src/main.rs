@@ -11,7 +11,7 @@ extern crate serialize;
 extern crate docopt;
 extern crate time;
 
-use git::{ LogReaderConfig, get_commits };
+use git::{ LogReaderConfig, get_commits, get_latest_tag };
 use log_writer::{ LogWriter, LogWriterOptions };
 use section_builder::build_sections;
 use std::io::{File, Open, Write};
@@ -25,7 +25,8 @@ mod section_builder;
 docopt!(Args, "clog
 
 Usage:
-  clog [--repository=<link> --setversion=<version> --subtitle=<subtitle> --from=<from> --to=<to>]
+  clog [--repository=<link> --setversion=<version> --subtitle=<subtitle> 
+        --from=<from> --to=<to> --from-latest-tag]
 
 Options:
   -h --help               Show this screen.
@@ -34,7 +35,8 @@ Options:
   --setversion=<version>  e.g. 0.1.0
   --subtitle=<subtitle>   e.g. crazy-release-name
   --from=<from>           e.g. 12a8546
-  --to=<to>               e.g. 8057684")
+  --to=<to>               e.g. 8057684
+  --from-latest-tag       uses the latest tag as starting point. Ignores other --from parameter")
 
 fn main () {
 
@@ -43,9 +45,10 @@ fn main () {
     let log_reader_config = LogReaderConfig {
         grep: "^feat|^fix|BREAKING'".to_string(),
         format: "%H%n%s%n%b%n==END==".to_string(),
-        from: args.flag_from,
+        from: if args.flag_from_latest_tag { get_latest_tag() } else { args.flag_from },
         to: args.flag_to
     };
+
     let commits = get_commits(log_reader_config);
 
     let sections = build_sections(commits.clone());
@@ -59,5 +62,4 @@ fn main () {
     writer.write_header();
     writer.write_section("Bug Fixes", &sections.fixes);
     writer.write_section("Features", &sections.features);
-    //println!("{}", commits);
 }
