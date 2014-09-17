@@ -17,10 +17,12 @@ Options:
   --subtitle=<subtitle>   e.g. crazy-release-name
   --from=<from>           e.g. 12a8546
   --to=<to>               e.g. 8057684
-``
+```
 
 Try it!
 
-1. Run `cargo build`
+1. Build clog `cargo build`
 
-2. Run `rm -rf changelog.md && ./target/clog --repository=https://github.com/thoughtram/clog --setversion=0.1.0 --subtitle=crazy-dog`
+2. Delete the old log file `rm changelog.md` 
+
+3. Run clog `./target/clog --repository=https://github.com/thoughtram/clog --setversion=0.1.0 --subtitle=crazy-dog`
