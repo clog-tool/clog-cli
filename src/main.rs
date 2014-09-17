@@ -14,7 +14,7 @@ extern crate time;
 use git::{ LogReaderConfig, get_commits, get_latest_tag };
 use log_writer::{ LogWriter, LogWriterOptions };
 use section_builder::build_sections;
-use std::io::{File, Open, Write};
+use std::io::{File, Append, Write};
 use docopt::FlagParser;
 
 mod common;
@@ -52,7 +52,7 @@ fn main () {
     let commits = get_commits(log_reader_config);
 
     let sections = build_sections(commits.clone());
-    let mut file = File::open_mode(&Path::new("changelog.md"), Open, Write).ok().unwrap();
+    let mut file = File::open_mode(&Path::new("changelog.md"), Append, Write).ok().unwrap();
     let mut writer = LogWriter::new(&mut file, LogWriterOptions { 
         repository_link: args.flag_repository,
         version: args.flag_setversion,
