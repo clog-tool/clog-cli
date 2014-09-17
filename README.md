@@ -7,16 +7,18 @@ A conventional changelog for the rest of us
 
 ```
 Usage:
-  clog [--repository=<link> --setversion=<version> --subtitle=<subtitle> --from=<from> --to=<to>]
+  clog [--repository=<link> --setversion=<version> --subtitle=<subtitle> 
+        --from=<from> --to=<to> --from-latest-tag]
 
 Options:
   -h --help               Show this screen.
   --version               Show version
-  --repository=<link>     e.g https://github.com/thoughtram/clog
+  -r --repository=<link>  e.g https://github.com/thoughtram/clog
   --setversion=<version>  e.g. 0.1.0
   --subtitle=<subtitle>   e.g. crazy-release-name
   --from=<from>           e.g. 12a8546
   --to=<to>               e.g. 8057684
+  --from-latest-tag       uses the latest tag as starting point. Ignores other --from parameter
 ```
 
 Try it!
