@@ -30,7 +30,7 @@ Usage:
 Options:
   -h --help               Show this screen.
   --version               Show version
-  --repository=<link>     e.g https://github.com/thoughtram/clog
+  -r --repository=<link>  e.g https://github.com/thoughtram/clog
   --setversion=<version>  e.g. 0.1.0
   --subtitle=<subtitle>   e.g. crazy-release-name
   --from=<from>           e.g. 12a8546
