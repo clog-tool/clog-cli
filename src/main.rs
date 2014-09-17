@@ -16,6 +16,7 @@ use log_writer::{ LogWriter, LogWriterOptions };
 use section_builder::build_sections;
 use std::io::{File, Append, Write};
 use docopt::FlagParser;
+use time::get_time;
 
 mod common;
 mod git;
@@ -40,6 +41,7 @@ Options:
 
 fn main () {
 
+    let start_nsec = get_time().nsec;
     let args: Args = FlagParser::parse().unwrap_or_else(|e| e.exit());
 
     let log_reader_config = LogReaderConfig {
@@ -62,4 +64,8 @@ fn main () {
     writer.write_header();
     writer.write_section("Bug Fixes", &sections.fixes);
     writer.write_section("Features", &sections.features);
+    
+    let end_nsec = get_time().nsec;
+    let elapsed_mssec = (end_nsec - start_nsec) / 1000000;
+    println!("changelog updated. (took {} ms)", elapsed_mssec);
 }
