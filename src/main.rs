@@ -54,7 +54,11 @@ fn main () {
     let commits = get_commits(log_reader_config);
 
     let sections = build_sections(commits.clone());
-    let contents = File::open(&Path::new("changelog.md")).read_to_string().unwrap();
+
+    let contents = match File::open(&Path::new("changelog.md")).read_to_string() {
+      Ok(content) => content,
+      Err(_)      => "".to_string()
+    };
 
     let mut file = File::open_mode(&Path::new("changelog.md"), Open, Write).ok().unwrap();
     let mut writer = LogWriter::new(&mut file, LogWriterOptions { 
