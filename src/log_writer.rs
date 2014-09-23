@@ -80,6 +80,11 @@ impl<'a> LogWriter<'a> {
         });
     }
 
+    pub fn write (&mut self, content: &str) {
+        self.writer.write("\n\n\n".as_bytes());
+        self.writer.write(content.as_bytes());
+    }
+
     pub fn new<T:Writer + Send>(writer: &'a mut T, options: LogWriterOptions) -> LogWriter<'a> {
         LogWriter {
             writer: writer,

@@ -14,7 +14,7 @@ extern crate time;
 use git::{ LogReaderConfig, get_commits, get_latest_tag };
 use log_writer::{ LogWriter, LogWriterOptions };
 use section_builder::build_sections;
-use std::io::{File, Append, Write};
+use std::io::{File, Open, Write};
 use docopt::FlagParser;
 use time::get_time;
 
@@ -54,7 +54,9 @@ fn main () {
     let commits = get_commits(log_reader_config);
 
     let sections = build_sections(commits.clone());
-    let mut file = File::open_mode(&Path::new("changelog.md"), Append, Write).ok().unwrap();
+    let contents = File::open(&Path::new("changelog.md")).read_to_string().unwrap();
+
+    let mut file = File::open_mode(&Path::new("changelog.md"), Open, Write).ok().unwrap();
     let mut writer = LogWriter::new(&mut file, LogWriterOptions { 
         repository_link: args.flag_repository,
         version: args.flag_setversion,
@@ -64,7 +66,8 @@ fn main () {
     writer.write_header();
     writer.write_section("Bug Fixes", &sections.fixes);
     writer.write_section("Features", &sections.features);
-    
+    writer.write(contents.as_slice());
+
     let end_nsec = get_time().nsec;
     let elapsed_mssec = (end_nsec - start_nsec) / 1000000;
     println!("changelog updated. (took {} ms)", elapsed_mssec);
