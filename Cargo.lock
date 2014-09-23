@@ -2,20 +2,20 @@
 name = "clog"
 version = "0.0.1"
 dependencies = [
- "docopt 0.6.3 (git+https://github.com/docopt/docopt.rs#da4e1ba9c416afb60999817e69618ab00cc1188a)",
- "docopt_macros 0.6.3 (git+https://github.com/docopt/docopt.rs#da4e1ba9c416afb60999817e69618ab00cc1188a)",
+ "docopt 0.6.3 (git+https://github.com/cburgdorf/docopt.rs#3137f67bf2f4ec333362c2224df15ebbf8667242)",
+ "docopt_macros 0.6.3 (git+https://github.com/cburgdorf/docopt.rs#3137f67bf2f4ec333362c2224df15ebbf8667242)",
 ]
 
 [[package]]
 name = "docopt"
 version = "0.6.3"
-source = "git+https://github.com/docopt/docopt.rs#da4e1ba9c416afb60999817e69618ab00cc1188a"
+source = "git+https://github.com/cburgdorf/docopt.rs#3137f67bf2f4ec333362c2224df15ebbf8667242"
 
 [[package]]
 name = "docopt_macros"
 version = "0.6.3"
-source = "git+https://github.com/docopt/docopt.rs#da4e1ba9c416afb60999817e69618ab00cc1188a"
+source = "git+https://github.com/cburgdorf/docopt.rs#3137f67bf2f4ec333362c2224df15ebbf8667242"
 dependencies = [
- "docopt 0.6.3 (git+https://github.com/docopt/docopt.rs#da4e1ba9c416afb60999817e69618ab00cc1188a)",
+ "docopt 0.6.3 (git+https://github.com/cburgdorf/docopt.rs#3137f67bf2f4ec333362c2224df15ebbf8667242)",
 ]
 

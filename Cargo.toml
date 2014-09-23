@@ -5,7 +5,7 @@ version = "0.0.1"
 authors = ["Christoph Burgdorf <christoph.burgdorf@bvsn.org>"]
 
 [dependencies.docopt]
-git = "https://github.com/docopt/docopt.rs"
+git = "https://github.com/cburgdorf/docopt.rs"
 
 [dependencies.docopt_macros]
-git = "https://github.com/docopt/docopt.rs"
+git = "https://github.com/cburgdorf/docopt.rs"
