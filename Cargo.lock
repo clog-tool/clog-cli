@@ -1,6 +1,6 @@
 [root]
 name = "clog"
-version = "0.0.1"
+version = "0.2.0"
 dependencies = [
  "docopt 0.6.3 (git+https://github.com/cburgdorf/docopt.rs#3137f67bf2f4ec333362c2224df15ebbf8667242)",
  "docopt_macros 0.6.3 (git+https://github.com/cburgdorf/docopt.rs#3137f67bf2f4ec333362c2224df15ebbf8667242)",
