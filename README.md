@@ -28,3 +28,7 @@ Try it!
 2. Delete the old log file `rm changelog.md` 
 
 3. Run clog `./target/clog --repository=https://github.com/thoughtram/clog --setversion=0.1.0 --subtitle=crazy-dog`
+
+## LICENSE
+
+clog is licensed under the MIT Open Source license. For more information, see the LICENSE file in this repository.
