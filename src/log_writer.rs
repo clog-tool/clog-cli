@@ -1,6 +1,5 @@
 use std::collections::hashmap::HashMap;
 use std::io::Writer;
-use time::now_utc;
 use common::{ LogEntry };
 
 pub struct LogWriter<'a> {
@@ -36,7 +35,7 @@ impl<'a> LogWriter<'a> {
         let version_text = format!("## {}{}", self.options.version, subtitle);
     
         fn get_date () -> String {
-            now_utc().strftime("%Y-%m-%d")
+            ::time::now_utc().strftime("%Y-%m-%d")
         }
 
         if self.options.repository_link.len() > 0 {

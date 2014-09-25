@@ -11,12 +11,10 @@ extern crate serialize;
 extern crate docopt;
 extern crate time;
 
-use git::{ LogReaderConfig, get_commits, get_latest_tag };
+use git::{ LogReaderConfig };
 use log_writer::{ LogWriter, LogWriterOptions };
-use section_builder::build_sections;
 use std::io::{File, Open, Write};
 use docopt::FlagParser;
-use time::get_time;
 
 mod common;
 mod git;
@@ -41,19 +39,19 @@ Options:
 
 fn main () {
 
-    let start_nsec = get_time().nsec;
+    let start_nsec = ::time::get_time().nsec;
     let args: Args = FlagParser::parse().unwrap_or_else(|e| e.exit());
 
     let log_reader_config = LogReaderConfig {
         grep: "^feat|^fix|BREAKING'".to_string(),
         format: "%H%n%s%n%b%n==END==".to_string(),
-        from: if args.flag_from_latest_tag { get_latest_tag() } else { args.flag_from },
+        from: if args.flag_from_latest_tag { ::git::get_latest_tag() } else { args.flag_from },
         to: args.flag_to
     };
 
-    let commits = get_commits(log_reader_config);
+    let commits = ::git::get_commits(log_reader_config);
 
-    let sections = build_sections(commits.clone());
+    let sections = ::section_builder::build_sections(commits.clone());
 
     let contents = match File::open(&Path::new("changelog.md")).read_to_string() {
       Ok(content) => content,
@@ -72,7 +70,7 @@ fn main () {
     writer.write_section("Features", &sections.features);
     writer.write(contents.as_slice());
 
-    let end_nsec = get_time().nsec;
+    let end_nsec = ::time::get_time().nsec;
     let elapsed_mssec = (end_nsec - start_nsec) / 1000000;
     println!("changelog updated. (took {} ms)", elapsed_mssec);
 }
