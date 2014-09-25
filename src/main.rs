@@ -49,7 +49,7 @@ fn main () {
         to: args.flag_to
     };
 
-    let commits = ::git::get_commits(log_reader_config);
+    let commits = ::git::get_log_entries(log_reader_config);
 
     let sections = ::section_builder::build_sections(commits.clone());
 

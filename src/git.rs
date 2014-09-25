@@ -24,7 +24,7 @@ pub fn get_latest_tag () -> String {
             .to_string()
 }
 
-pub fn get_commits (config:LogReaderConfig) -> Vec<LogEntry>{
+pub fn get_log_entries (config:LogReaderConfig) -> Vec<LogEntry>{
 
     let range = if config.from.len() == 0 {
         "HEAD".to_string()
