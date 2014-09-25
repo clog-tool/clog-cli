@@ -79,18 +79,16 @@ fn parse_raw_commit(commit_str:&str) -> LogEntry {
         true
     });
 
-    match COMMIT_PATTERN.captures(temp_subject.as_slice()) {
-        Some(caps) => {
-            entry.commit_type = match caps.at(1) {
-                "feat" => Feature,
-                "fix"  => Fix,
-                _      => Unknown
-            };
-            entry.component = caps.at(2).to_string();
-            entry.subject = caps.at(3).to_string();
-        },
-        _ => ()
-    };
+    COMMIT_PATTERN.captures(temp_subject.as_slice())
+                  .map(|caps| {
+                       entry.commit_type = match caps.at(1) {
+                           "feat" => Feature,
+                           "fix"  => Fix,
+                           _      => Unknown
+                       };
+                       entry.component = caps.at(2).to_string();
+                       entry.subject = caps.at(3).to_string();
+                  });
 
     entry
 }
