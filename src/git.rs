@@ -51,6 +51,7 @@ pub fn get_log_entries (config:LogReaderConfig) -> Vec<LogEntry>{
 }
 
 static COMMIT_PATTERN: Regex = regex!(r"^(.*)\((.*)\):(.*)");
+static CLOSES_PATTERN: Regex = regex!(r"(?:Closes|Fixes|Resolves)\s((?:#(\d+)(?:,\s)?)+)");
 
 fn parse_raw_commit(commit_str:&str) -> LogEntry {
 
@@ -69,6 +70,14 @@ fn parse_raw_commit(commit_str:&str) -> LogEntry {
         breaks: vec!(),
         commit_type: Unknown
     };
+
+    lines.iter().all(|line| {
+        CLOSES_PATTERN.captures(*line)
+                      .map(|caps| {
+                          entry.closes.push(caps.at(2).to_string());
+                      });
+        true
+    });
 
     match COMMIT_PATTERN.captures(temp_subject.as_slice()) {
         Some(caps) => {

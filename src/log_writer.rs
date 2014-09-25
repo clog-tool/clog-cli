@@ -25,6 +25,15 @@ impl<'a> LogWriter<'a> {
         }
     }
 
+    fn get_issue_link (repository: &String, issue: &String) -> String {
+        if repository.len() > 0 {
+            format!("[#{}]({}/issues/{})", issue, repository, issue)
+        }
+        else {
+            format!("(#{})", issue)
+        }
+    }
+
     pub fn write_header (&mut self) {
 
         let subtitle = match self.options.subtitle.len() {
@@ -69,8 +78,17 @@ impl<'a> LogWriter<'a> {
 
             entries.iter().all(|entry| {
                 self.writer.write(format!("{} {} ({}", prefix, entry.subject, LogWriter::get_commit_link(&self.options.repository_link, &entry.hash)).as_bytes());
-                //TODO: implement closes stuff
+                if entry.closes.len() > 0 {
 
+                    let closes_string = entry.closes.iter().fold("".to_string(), |a, b| { 
+                        match a.len() {
+                            0 => format!("{}", LogWriter::get_issue_link(&self.options.repository_link, b)),
+                            _ => format!("{}, {}", a, LogWriter::get_issue_link(&self.options.repository_link, b))
+                        } 
+                    });
+                    self.writer.write(format!(", closes {}", closes_string).as_bytes());
+                }
+                
                 self.writer.write(")\n".as_bytes());
 
                 true
@@ -78,6 +96,7 @@ impl<'a> LogWriter<'a> {
             true
         });
     }
+
 
     pub fn write (&mut self, content: &str) {
         self.writer.write("\n\n\n".as_bytes());

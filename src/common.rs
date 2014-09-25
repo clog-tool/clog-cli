@@ -24,8 +24,10 @@ impl fmt::Show for LogEntry {
             hash:{}, 
             subject: {},
             commit_type: {},
-            component: {}
-        }}", self.hash, self.subject, self.commit_type, self.component)
+            component: {},
+            closes: {},
+            breaks: {}
+        }}", self.hash, self.subject, self.commit_type, self.component, self.closes, self.breaks)
     }
 }
 
