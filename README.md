@@ -1,7 +1,7 @@
 clog
 ====
 
-A conventional changelog for the rest of us
+A [conventional](https://github.com/ajoslin/conventional-changelog/blob/master/CONVENTIONS.md) changelog for the rest of us
 
 ### Usage
 
