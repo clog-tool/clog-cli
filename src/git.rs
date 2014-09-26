@@ -52,41 +52,34 @@ static COMMIT_PATTERN: Regex = regex!(r"^(.*)\((.*)\):(.*)");
 static CLOSES_PATTERN: Regex = regex!(r"(?:Closes|Fixes|Resolves)\s((?:#(\d+)(?:,\s)?)+)");
 
 fn parse_raw_commit(commit_str:&str) -> LogEntry {
+    let mut lines = commit_str.split('\n');
 
-    let mut lines = commit_str.split('\n').collect::<Vec<&str>>();
+    let hash = lines.next().unwrap_or("").to_string();
 
-    //println!("parsed: {}", lines);
+    let (subject, component, commit_type) =
+        match lines.next().and_then(|s| COMMIT_PATTERN.captures(s)) {
+            Some(caps) => {
+                let commit_type = match caps.at(1) {
+                    "feat" => Feature,
+                    "fix"  => Fix,
+                    _      => Unknown
+                };
+                let component = caps.at(2).to_string();
+                let subject = caps.at(3).to_string();
+                (subject, component, commit_type)
+           },
+           None => ("".to_string(), "".to_string(), Unknown)
+        };
+    let closes = lines.filter_map(|line| CLOSES_PATTERN.captures(line))
+                      .map(|caps| caps.at(2).to_string())
+                      .collect();
 
-    let hash = lines.remove(0).unwrap_or("").to_string();
-    let temp_subject = lines.remove(0).unwrap_or("").to_string();
-
-    let mut entry = LogEntry {
+    LogEntry {
         hash: hash,
-        subject: "".to_string(),
-        component: "".to_string(),
-        closes: vec!(),
+        subject: subject,
+        component: component,
+        closes: closes,
         breaks: vec!(),
-        commit_type: Unknown
-    };
-
-    lines.iter().all(|line| {
-        CLOSES_PATTERN.captures(*line)
-                      .map(|caps| {
-                          entry.closes.push(caps.at(2).to_string());
-                      });
-        true
-    });
-
-    COMMIT_PATTERN.captures(temp_subject.as_slice())
-                  .map(|caps| {
-                       entry.commit_type = match caps.at(1) {
-                           "feat" => Feature,
-                           "fix"  => Fix,
-                           _      => Unknown
-                       };
-                       entry.component = caps.at(2).to_string();
-                       entry.subject = caps.at(3).to_string();
-                  });
-
-    entry
+        commit_type: commit_type
+    }
 }
