@@ -2,15 +2,13 @@ use std::collections::hashmap::HashMap;
 use common::{ LogEntry, SectionMap, Feature, Fix };
 
 pub fn build_sections(log_entries: Vec<LogEntry>) -> SectionMap {
-
     let mut sections = SectionMap {
         features: HashMap::new(),
         fixes: HashMap::new(),
         breaks: HashMap::new()
     };
 
-    log_entries.iter().all(|entry| {
-
+    for entry in log_entries.into_iter() {
         match entry.commit_type {
             Feature => {
                 sections.features
@@ -24,9 +22,7 @@ pub fn build_sections(log_entries: Vec<LogEntry>) -> SectionMap {
             },
             _   => {}
         }
-
-        true
-    });
+    }
 
     sections
 }

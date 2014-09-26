@@ -42,7 +42,7 @@ impl<'a> LogWriter<'a> {
         };
 
         let version_text = format!("## {}{}", self.options.version, subtitle);
-    
+
         fn get_date () -> String {
             ::time::now_utc().strftime("%Y-%m-%d")
         }
@@ -63,7 +63,7 @@ impl<'a> LogWriter<'a> {
 
         self.writer.write_line(format!("\n#### {}\n\n", title).as_slice());
 
-        section.iter().all(|(component, entries)| {
+        for (component, entries) in section.iter() {
             let mut prefix:String;
             let nested = entries.len() > 1;
 
@@ -76,25 +76,22 @@ impl<'a> LogWriter<'a> {
                 prefix = format!("* **{}**", component)
             }
 
-            entries.iter().all(|entry| {
+            for entry in entries.iter() {
                 self.writer.write(format!("{} {} ({}", prefix, entry.subject, LogWriter::get_commit_link(&self.options.repository_link, &entry.hash)).as_bytes());
                 if entry.closes.len() > 0 {
 
-                    let closes_string = entry.closes.iter().fold("".to_string(), |a, b| { 
+                    let closes_string = entry.closes.iter().fold("".to_string(), |a, b| {
                         match a.len() {
                             0 => format!("{}", LogWriter::get_issue_link(&self.options.repository_link, b)),
                             _ => format!("{}, {}", a, LogWriter::get_issue_link(&self.options.repository_link, b))
-                        } 
+                        }
                     });
                     self.writer.write(format!(", closes {}", closes_string).as_bytes());
                 }
-                
-                self.writer.write(")\n".as_bytes());
 
-                true
-            });
-            true
-        });
+                self.writer.write(")\n".as_bytes());
+            };
+        };
     }
 
 
