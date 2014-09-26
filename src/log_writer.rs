@@ -1,5 +1,6 @@
 use std::collections::hashmap::HashMap;
 use std::io::Writer;
+use time;
 use common::{ LogEntry };
 
 pub struct LogWriter<'a> {
@@ -43,61 +44,69 @@ impl<'a> LogWriter<'a> {
 
         let version_text = format!("## {}{}", self.options.version, subtitle);
 
-        fn get_date () -> String {
-            ::time::now_utc().strftime("%Y-%m-%d")
-        }
+        let date = time::now_utc().strftime("%Y-%m-%d");
 
         if self.options.repository_link.len() > 0 {
-            self.writer.write(format!("{} ({})\n\n", version_text, get_date()).as_bytes());
-        }
-        else {
-            self.writer.write(format!("<a name=\"{}\"</a>\n{} ({})\n\n", self.options.version, version_text, get_date()).as_bytes());
+            write!(self.writer, "{} ({})\n\n", version_text, date);
+        } else {
+            write!(self.writer, "<a name=\"{}\"</a>\n{} ({})\n\n",
+                                self.options.version,
+                                version_text,
+                                date);
         }
     }
 
     pub fn write_section (&mut self, title: &str, section: &HashMap<String, Vec<LogEntry>>) {
+        if section.len() == 0 { return; }
 
-        if section.len() == 0 {
-            return;
-        }
+        let repo_link = &self.options.repository_link;
+        // FIXME: Refactor these to non-static methods
+        let issue_link = |s| -> String {
+            LogWriter::get_issue_link(repo_link, s)
+        };
+        let commit_link = |s| -> String {
+            LogWriter::get_commit_link(repo_link, s)
+        };
 
         self.writer.write_line(format!("\n#### {}\n\n", title).as_slice());
 
         for (component, entries) in section.iter() {
-            let mut prefix:String;
             let nested = entries.len() > 1;
 
             //TODO: implement the empty component stuff
-            if nested {
-                self.writer.write(format!("* **{}**\n", component).as_bytes());
-                prefix = "  *".to_string();
-            }
-            else {
-                prefix = format!("* **{}**", component)
-            }
+            let prefix = if nested {
+                write!(self.writer, "* **{}**\n", component);
+                "  *".to_string()
+            } else {
+                format!("* **{}**", component)
+            };
 
             for entry in entries.iter() {
-                self.writer.write(format!("{} {} ({}", prefix, entry.subject, LogWriter::get_commit_link(&self.options.repository_link, &entry.hash)).as_bytes());
-                if entry.closes.len() > 0 {
+                write!(self.writer, "{} {} ({}",
+                                    prefix,
+                                    entry.subject,
+                                    commit_link(&entry.hash));
 
-                    let closes_string = entry.closes.iter().fold("".to_string(), |a, b| {
-                        match a.len() {
-                            0 => format!("{}", LogWriter::get_issue_link(&self.options.repository_link, b)),
-                            _ => format!("{}, {}", a, LogWriter::get_issue_link(&self.options.repository_link, b))
-                        }
-                    });
-                    self.writer.write(format!(", closes {}", closes_string).as_bytes());
+                if entry.closes.len() > 0 {
+                    let closes_string = entry.closes.iter()
+                                                    .map(|s| issue_link(s))
+                                                    // FIXME: Connect should be
+                                                    // used on the Iterator
+                                                    .collect::<Vec<String>>()
+                                                    .connect(", ");
+
+                    write!(self.writer, ", closes {}", closes_string);
                 }
 
-                self.writer.write(")\n".as_bytes());
+                write!(self.writer, ")\n");
             };
         };
     }
 
 
     pub fn write (&mut self, content: &str) {
-        self.writer.write("\n\n\n".as_bytes());
-        self.writer.write(content.as_bytes());
+        write!(self.writer, "\n\n\n");
+        write!(self.writer, "{}", content);
     }
 
     pub fn new<T:Writer + Send>(writer: &'a mut T, options: LogWriterOptions) -> LogWriter<'a> {
