@@ -16,22 +16,19 @@ pub struct LogWriterOptions<'a> {
 
 impl<'a> LogWriter<'a> {
 
-    fn get_commit_link (repository: &String, hash: &String) -> String {
+    fn commit_link(&self, hash: &String) -> String {
         let short_hash = hash.as_slice().slice_chars(0,8);
-        if repository.len() > 0 {
-            format!("[{}]({}/commit/{})", short_hash, repository, hash)
-        }
-        else {
-            format!("({})", short_hash)
+        match self.options.repository_link.as_slice() {
+            "" => format!("({})", short_hash),
+            link => format!("[{}]({}/commit/{})", short_hash, link, hash)
+
         }
     }
 
-    fn get_issue_link (repository: &String, issue: &String) -> String {
-        if repository.len() > 0 {
-            format!("[#{}]({}/issues/{})", issue, repository, issue)
-        }
-        else {
-            format!("(#{})", issue)
+    fn issue_link(&self, issue: &String) -> String {
+        match self.options.repository_link.as_slice() {
+            "" => format!("(#{})", issue),
+            link => format!("[#{}]({}/issues/{})", issue, link, issue)
         }
     }
 
@@ -59,15 +56,6 @@ impl<'a> LogWriter<'a> {
     pub fn write_section (&mut self, title: &str, section: &HashMap<String, Vec<LogEntry>>) {
         if section.len() == 0 { return; }
 
-        let repo_link = &self.options.repository_link;
-        // FIXME: Refactor these to non-static methods
-        let issue_link = |s| -> String {
-            LogWriter::get_issue_link(repo_link, s)
-        };
-        let commit_link = |s| -> String {
-            LogWriter::get_commit_link(repo_link, s)
-        };
-
         self.writer.write_line(format!("\n#### {}\n\n", title).as_slice());
 
         for (component, entries) in section.iter() {
@@ -85,11 +73,11 @@ impl<'a> LogWriter<'a> {
                 write!(self.writer, "{} {} ({}",
                                     prefix,
                                     entry.subject,
-                                    commit_link(&entry.hash));
+                                    self.commit_link(&entry.hash));
 
                 if entry.closes.len() > 0 {
                     let closes_string = entry.closes.iter()
-                                                    .map(|s| issue_link(s))
+                                                    .map(|s| self.issue_link(s))
                                                     // FIXME: Connect should be
                                                     // used on the Iterator
                                                     .collect::<Vec<String>>()
