@@ -6,7 +6,7 @@ use common:: { LogEntry, Feature, Fix, Unknown };
 pub struct LogReaderConfig {
     pub grep: String,
     pub format: String,
-    pub from: String,
+    pub from: Option<String>,
     pub to: String
 }
 
@@ -26,11 +26,9 @@ pub fn get_latest_tag () -> String {
 
 pub fn get_log_entries (config:LogReaderConfig) -> Vec<LogEntry>{
 
-    let range = if config.from.len() == 0 {
-        "HEAD".to_string()
-    }
-    else {
-        format!("{}..{}", config.from, config.to)
+    let range = match config.from {
+        Some(ref from) => format!("{}..{}", from, config.to),
+        None => "HEAD".to_string()
     };
 
     Command::new("git")
