@@ -7,7 +7,7 @@ A [conventional](https://github.com/ajoslin/conventional-changelog/blob/master/C
 
 ```
 Usage:
-  clog [--repository=<link> --setversion=<version> --subtitle=<subtitle> 
+  clog [--repository=<link> --setversion=<version> --subtitle=<subtitle>
         --from=<from> --to=<to> --from-latest-tag]
 
 Options:
@@ -25,7 +25,7 @@ Try it!
 
 1. Build clog `cargo build`
 
-2. Delete the old log file `rm changelog.md` 
+2. Delete the old log file `rm changelog.md`
 
 3. Run clog `./target/clog --repository=https://github.com/thoughtram/clog --setversion=0.1.0 --subtitle=crazy-dog`
 
