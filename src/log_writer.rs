@@ -1,5 +1,5 @@
 use std::collections::hashmap::HashMap;
-use std::io::Writer;
+use std::io::{Writer, IoResult};
 use time;
 use common::{ LogEntry };
 
@@ -32,8 +32,7 @@ impl<'a> LogWriter<'a> {
         }
     }
 
-    pub fn write_header (&mut self) {
-
+    pub fn write_header(&mut self) -> IoResult<()> {
         let subtitle = match self.options.subtitle.len() {
             0 => self.options.subtitle.clone(),
             _ => format!(" {}", self.options.subtitle)
@@ -44,36 +43,37 @@ impl<'a> LogWriter<'a> {
         let date = time::now_utc().strftime("%Y-%m-%d");
 
         if self.options.repository_link.len() > 0 {
-            write!(self.writer, "{} ({})\n\n", version_text, date);
+            write!(self.writer, "{} ({})\n\n", version_text, date)
         } else {
             write!(self.writer, "<a name=\"{}\"</a>\n{} ({})\n\n",
                                 self.options.version,
                                 version_text,
-                                date);
+                                date)
         }
     }
 
-    pub fn write_section (&mut self, title: &str, section: &HashMap<String, Vec<LogEntry>>) {
-        if section.len() == 0 { return; }
+    pub fn write_section(&mut self, title: &str, section: &HashMap<String, Vec<LogEntry>>)
+                            -> IoResult<()> {
+        if section.len() == 0 { return Ok(()) }
 
-        self.writer.write_line(format!("\n#### {}\n\n", title).as_slice());
+        try!(self.writer.write_line(format!("\n#### {}\n\n", title).as_slice()));
 
         for (component, entries) in section.iter() {
             let nested = entries.len() > 1;
 
             //TODO: implement the empty component stuff
             let prefix = if nested {
-                write!(self.writer, "* **{}**\n", component);
+                try!(write!(self.writer, "* **{}**\n", component));
                 "  *".to_string()
             } else {
                 format!("* **{}**", component)
             };
 
             for entry in entries.iter() {
-                write!(self.writer, "{} {} ({}",
-                                    prefix,
-                                    entry.subject,
-                                    self.commit_link(&entry.hash));
+                try!(write!(self.writer, "{} {} ({}",
+                                         prefix,
+                                         entry.subject,
+                                         self.commit_link(&entry.hash)));
 
                 if entry.closes.len() > 0 {
                     let closes_string = entry.closes.iter()
@@ -83,18 +83,20 @@ impl<'a> LogWriter<'a> {
                                                     .collect::<Vec<String>>()
                                                     .connect(", ");
 
-                    write!(self.writer, ", closes {}", closes_string);
+                    try!(write!(self.writer, ", closes {}", closes_string));
                 }
 
-                write!(self.writer, ")\n");
-            };
-        };
+                try!(write!(self.writer, ")\n"));
+            }
+        }
+
+        Ok(())
     }
 
 
-    pub fn write (&mut self, content: &str) {
-        write!(self.writer, "\n\n\n");
-        write!(self.writer, "{}", content);
+    pub fn write(&mut self, content: &str)  -> IoResult<()> {
+        try!(write!(self.writer, "\n\n\n"));
+        write!(self.writer, "{}", content)
     }
 
     pub fn new<T:Writer + Send>(writer: &'a mut T, options: LogWriterOptions) -> LogWriter<'a> {

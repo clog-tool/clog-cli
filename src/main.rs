@@ -66,10 +66,10 @@ fn main () {
         subtitle: args.flag_subtitle
     });
 
-    writer.write_header();
-    writer.write_section("Bug Fixes", &sections.fixes);
-    writer.write_section("Features", &sections.features);
-    writer.write(contents.as_slice());
+    writer.write_header().ok().expect("failed to write header");
+    writer.write_section("Bug Fixes", &sections.fixes).ok().expect("failed to write bugfixes");;
+    writer.write_section("Features", &sections.features).ok().expect("failed to write features");;
+    writer.write(contents.as_slice()).ok().expect("failed to write contents");;
 
     let end_nsec = ::time::get_time().nsec;
     let elapsed_mssec = (end_nsec - start_nsec) / 1000000;
