@@ -50,9 +50,9 @@ fn main () {
         to: args.flag_to
     };
 
-    let commits = ::git::get_log_entries(log_reader_config);
+    let commits = git::get_log_entries(log_reader_config);
 
-    let sections = ::section_builder::build_sections(commits.clone());
+    let sections = section_builder::build_sections(commits.clone());
 
     let contents = match File::open(&Path::new("changelog.md")).read_to_string() {
       Ok(content) => content,
