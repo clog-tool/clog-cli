@@ -43,7 +43,7 @@ impl<'a> LogWriter<'a> {
 
         let date = time::now_utc().strftime("%Y-%m-%d");
 
-        write!(self.writer, "{} ({})\n\n", version_text, date)
+        write!(self.writer, "<a name=\"{}\"></a>\n{} ({})\n\n", self.options.version, version_text, date)
     }
 
     pub fn write_section(&mut self, title: &str, section: &HashMap<String, Vec<LogEntry>>)
