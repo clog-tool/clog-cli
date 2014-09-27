@@ -40,7 +40,7 @@ Options:
 
 fn main () {
 
-    let start_nsec = ::time::get_time().nsec;
+    let start_nsec = time::get_time().nsec;
     let args: Args = FlagParser::parse().unwrap_or_else(|e| e.exit());
 
     let log_reader_config = LogReaderConfig {
@@ -71,7 +71,7 @@ fn main () {
     writer.write_section("Features", &sections.features).ok().expect("failed to write features");;
     writer.write(contents.as_slice()).ok().expect("failed to write contents");;
 
-    let end_nsec = ::time::get_time().nsec;
+    let end_nsec = time::get_time().nsec;
     let elapsed_mssec = (end_nsec - start_nsec) / 1000000;
     println!("changelog updated. (took {} ms)", elapsed_mssec);
 }
