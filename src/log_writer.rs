@@ -1,6 +1,7 @@
 use std::collections::hashmap::HashMap;
 use std::io::{Writer, IoResult};
 use time;
+use format_util;
 use common::{ LogEntry };
 
 pub struct LogWriter<'a> {
@@ -17,7 +18,7 @@ pub struct LogWriterOptions<'a> {
 impl<'a> LogWriter<'a> {
 
     fn commit_link(&self, hash: &String) -> String {
-        let short_hash = hash.as_slice().slice_chars(0,8);
+        let short_hash = format_util::get_short_hash(hash.as_slice());
         match self.options.repository_link.as_slice() {
             "" => format!("({})", short_hash),
             link => format!("[{}]({}/commit/{})", short_hash, link, hash)
@@ -42,14 +43,7 @@ impl<'a> LogWriter<'a> {
 
         let date = time::now_utc().strftime("%Y-%m-%d");
 
-        if self.options.repository_link.len() > 0 {
-            write!(self.writer, "{} ({})\n\n", version_text, date)
-        } else {
-            write!(self.writer, "<a name=\"{}\"</a>\n{} ({})\n\n",
-                                self.options.version,
-                                version_text,
-                                date)
-        }
+        write!(self.writer, "{} ({})\n\n", version_text, date)
     }
 
     pub fn write_section(&mut self, title: &str, section: &HashMap<String, Vec<LogEntry>>)
