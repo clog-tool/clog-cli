@@ -20,6 +20,7 @@ mod common;
 mod git;
 mod log_writer;
 mod section_builder;
+mod format_util;
 
 docopt!(Args, "clog
 
@@ -36,7 +37,8 @@ Options:
   --from=<from>           e.g. 12a8546
   --to=<to>               e.g. 8057684
   --from-latest-tag       uses the latest tag as starting point. Ignores other --from parameter",
-  flag_from: Option<String>)
+  flag_from: Option<String>,
+  flag_setversion: Option<String>)
 
 fn main () {
 
@@ -62,7 +64,8 @@ fn main () {
     let mut file = File::open_mode(&Path::new("changelog.md"), Open, Write).ok().unwrap();
     let mut writer = LogWriter::new(&mut file, LogWriterOptions {
         repository_link: args.flag_repository,
-        version: args.flag_setversion,
+        version: args.flag_setversion
+                     .unwrap_or_else(|| format_util::get_short_hash(git::get_last_commit().as_slice()).to_string()),
         subtitle: args.flag_subtitle
     });
 
