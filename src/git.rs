@@ -24,6 +24,16 @@ pub fn get_latest_tag () -> String {
             .to_string()
 }
 
+pub fn get_last_commit () -> String {
+    Command::new("git")
+            .arg("rev-parse")
+            .arg("HEAD")
+            .spawn()
+            .ok().expect("failed to invoke rev-parse")
+            .stdout.get_mut_ref().read_to_string()
+            .ok().expect("failed to get last commit")
+}
+
 pub fn get_log_entries (config:LogReaderConfig) -> Vec<LogEntry>{
 
     let range = match config.from {
