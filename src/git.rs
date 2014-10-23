@@ -18,7 +18,7 @@ pub fn get_latest_tag () -> String {
             .arg("--max-count=1")
             .spawn()
             .ok().expect("failed to invoke ref-list")
-            .stdout.get_mut_ref().read_to_string()
+            .stdout.as_mut().unwrap().read_to_string()
             .ok().expect("failed to get latest git log")
             .as_slice().trim_chars('\n')
             .to_string()
@@ -30,7 +30,7 @@ pub fn get_last_commit () -> String {
             .arg("HEAD")
             .spawn()
             .ok().expect("failed to invoke rev-parse")
-            .stdout.get_mut_ref().read_to_string()
+            .stdout.as_mut().unwrap().read_to_string()
             .ok().expect("failed to get last commit")
 }
 
@@ -49,7 +49,7 @@ pub fn get_log_entries (config:LogReaderConfig) -> Vec<LogEntry>{
             .arg(range)
             .spawn()
             .ok().expect("failed to invoke `git log`")
-            .stdout.get_mut_ref().read_to_string()
+            .stdout.as_mut().unwrap().read_to_string()
             .ok().expect("failed to read git log")
             .as_slice()
             .split_str("\n==END==\n")
