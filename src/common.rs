@@ -1,14 +1,14 @@
 use std::fmt;
 use std::collections::hashmap::HashMap;
 
-#[deriving(Show, PartialEq, Clone)]
+#[derive(Show, PartialEq, Clone)]
 pub enum CommitType {
     Feature,
     Fix,
     Unknown
 }
 
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct LogEntry {
     pub hash: String,
     pub subject: String,

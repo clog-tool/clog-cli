@@ -2,7 +2,7 @@ use std::io::Command;
 use regex::Regex;
 use common:: { LogEntry, Feature, Fix, Unknown };
 
-#[deriving(Show)]
+#[derive(Show)]
 pub struct LogReaderConfig {
     pub grep: String,
     pub format: String,

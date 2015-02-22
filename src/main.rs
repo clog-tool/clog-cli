@@ -1,13 +1,13 @@
 #![crate_name = "clog"]
-#![comment = "A conventional changelog generator"]
-#![license = "MIT"]
-#![feature(macro_rules, phase)]
+#![feature(macro_rules)]
+#![feature(plugin)]
+#![plugin(docopt_macros)]
+#![plugin(regex_macros)]
 
 extern crate regex;
-#[phase(plugin)]
 extern crate regex_macros;
 extern crate serialize;
-#[phase(plugin)] extern crate docopt_macros;
+extern crate docopt_macros;
 extern crate docopt;
 extern crate time;
 
@@ -25,8 +25,8 @@ mod format_util;
 docopt!(Args, "clog
 
 Usage:
-  clog [--repository=<link> --setversion=<version> --subtitle=<subtitle>
-        --from=<from> --to=<to> --from-latest-tag]
+  clog [--repository=<link> --setversion=<version> --subtitle=<subtitle>]
+       [--from=<from> --to=<to> --from-latest-tag]
 
 Options:
   -h --help               Show this screen.
@@ -38,7 +38,7 @@ Options:
   --to=<to>               e.g. 8057684
   --from-latest-tag       uses the latest tag as starting point. Ignores other --from parameter",
   flag_from: Option<String>,
-  flag_setversion: Option<String>)
+  flag_setversion: Option<String>);
 
 fn main () {
 

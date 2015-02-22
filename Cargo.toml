@@ -4,8 +4,9 @@ name = "clog"
 version = "0.2.0"
 authors = ["Christoph Burgdorf <christoph.burgdorf@bvsn.org>"]
 
-[dependencies.docopt]
-git = "https://github.com/docopt/docopt.rs"
-
-[dependencies.docopt_macros]
-git = "https://github.com/docopt/docopt.rs"
+[dependencies]
+docopt = "*"
+docopt_macros = "*"
+regex = "*"
+regex_macros = "*"
+time = "*"
