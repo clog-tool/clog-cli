@@ -1,15 +1,15 @@
-use std::collections::hashmap::HashMap;
-use std::io::{Writer, IoResult};
+use std::collections::HashMap;
+use std::io::{Write, Result};
 use time;
 use format_util;
 use common::{ LogEntry };
 
 pub struct LogWriter<'a> {
-    writer: &'a mut Writer+'a,
-    options: LogWriterOptions<'a>
+    writer: &'a mut (Writer + 'a),
+    options: LogWriterOptions
 }
 
-pub struct LogWriterOptions<'a> {
+pub struct LogWriterOptions {
     pub repository_link: String,
     pub version: String,
     pub subtitle: String
@@ -33,7 +33,7 @@ impl<'a> LogWriter<'a> {
         }
     }
 
-    pub fn write_header(&mut self) -> IoResult<()> {
+    pub fn write_header(&mut self) -> Result<()> {
         let subtitle = match self.options.subtitle.len() {
             0 => self.options.subtitle.clone(),
             _ => format!(" {}", self.options.subtitle)
@@ -47,7 +47,7 @@ impl<'a> LogWriter<'a> {
     }
 
     pub fn write_section(&mut self, title: &str, section: &HashMap<String, Vec<LogEntry>>)
-                            -> IoResult<()> {
+                            -> Result<()> {
         if section.len() == 0 { return Ok(()) }
 
         try!(self.writer.write_line(format!("\n#### {}\n\n", title).as_slice()));
@@ -88,7 +88,7 @@ impl<'a> LogWriter<'a> {
     }
 
 
-    pub fn write(&mut self, content: &str)  -> IoResult<()> {
+    pub fn write(&mut self, content: &str)  -> Result<()> {
         try!(write!(self.writer, "\n\n\n"));
         write!(self.writer, "{}", content)
     }

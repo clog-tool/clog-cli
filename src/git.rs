@@ -1,8 +1,10 @@
-use std::io::Command;
+use std::process::Command;
+use std::io::Read;
 use regex::Regex;
-use common:: { LogEntry, Feature, Fix, Unknown };
+use common:: { LogEntry };
+use common::CommitType::{ Unknown, Feature, Fix };
 
-#[derive(Show)]
+#[derive(Debug)]
 pub struct LogReaderConfig {
     pub grep: String,
     pub format: String,
@@ -11,27 +13,31 @@ pub struct LogReaderConfig {
 }
 
 pub fn get_latest_tag () -> String {
-
+    let mut buf = String::new();
     Command::new("git")
             .arg("rev-list")
             .arg("--tags")
             .arg("--max-count=1")
             .spawn()
             .ok().expect("failed to invoke ref-list")
-            .stdout.as_mut().unwrap().read_to_string()
-            .ok().expect("failed to get latest git log")
-            .as_slice().trim_chars('\n')
+            .stdout.as_mut().unwrap().read_to_string(&mut buf)
+            .ok().expect("failed to get latest git log");
+
+            buf
+            .as_slice().trim_matches('\n')
             .to_string()
 }
 
 pub fn get_last_commit () -> String {
+    let mut buf = String::new();
     Command::new("git")
             .arg("rev-parse")
             .arg("HEAD")
             .spawn()
             .ok().expect("failed to invoke rev-parse")
-            .stdout.as_mut().unwrap().read_to_string()
-            .ok().expect("failed to get last commit")
+            .stdout.as_mut().unwrap().read_to_string(&mut buf)
+            .ok().expect("failed to get last commit");
+    buf
 }
 
 pub fn get_log_entries (config:LogReaderConfig) -> Vec<LogEntry>{
@@ -41,16 +47,20 @@ pub fn get_log_entries (config:LogReaderConfig) -> Vec<LogEntry>{
         None => "HEAD".to_string()
     };
 
+    let mut buf = String::new();
+
     Command::new("git")
             .arg("log")
             .arg("-E")
-            .arg(format!("--grep={}",config.grep))
-            .arg(format!("--format={}", "%H%n%s%n%b%n==END=="))
-            .arg(range)
+            .arg(&format!("--grep={}",config.grep))
+            .arg(&format!("--format={}", "%H%n%s%n%b%n==END=="))
+            .arg(&range)
             .spawn()
             .ok().expect("failed to invoke `git log`")
-            .stdout.as_mut().unwrap().read_to_string()
-            .ok().expect("failed to read git log")
+            .stdout.as_mut().unwrap().read_to_string(&mut buf)
+            .ok().expect("failed to read git log");
+
+            buf
             .as_slice()
             .split_str("\n==END==\n")
             .map(|commit_str| { parse_raw_commit(commit_str) })

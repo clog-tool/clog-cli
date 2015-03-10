@@ -6,6 +6,7 @@ dependencies = [
  "docopt_macros 0.6.39 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex_macros 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-serialize 0.2.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.17 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
