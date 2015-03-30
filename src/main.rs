@@ -4,10 +4,10 @@
 #![plugin(docopt_macros)]
 #![plugin(regex_macros)]
 
-extern crate "rustc-serialize" as rustc_serialize;
 extern crate regex;
 extern crate regex_macros;
 extern crate serialize;
+extern crate "rustc-serialize" as rustc_serialize;
 extern crate docopt_macros;
 extern crate docopt;
 extern crate time;
