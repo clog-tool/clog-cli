@@ -1,20 +1,20 @@
 #![crate_name = "clog"]
-#![comment = "A conventional changelog generator"]
-#![license = "MIT"]
-#![feature(macro_rules, phase)]
+#![feature(macro_rules)]
+#![feature(plugin)]
+#![plugin(docopt_macros)]
+#![plugin(regex_macros)]
 
+extern crate "rustc-serialize" as rustc_serialize;
 extern crate regex;
-#[phase(plugin)]
 extern crate regex_macros;
 extern crate serialize;
-#[phase(plugin)] extern crate docopt_macros;
+extern crate docopt_macros;
 extern crate docopt;
 extern crate time;
 
 use git::LogReaderConfig;
 use log_writer::{ LogWriter, LogWriterOptions };
-use std::io::{File, Open, Write};
-use docopt::FlagParser;
+use std::fs::File;
 
 mod common;
 mod git;
@@ -25,8 +25,8 @@ mod format_util;
 docopt!(Args, "clog
 
 Usage:
-  clog [--repository=<link> --setversion=<version> --subtitle=<subtitle>
-        --from=<from> --to=<to> --from-latest-tag]
+  clog [--repository=<link> --setversion=<version> --subtitle=<subtitle>]
+       [--from=<from> --to=<to> --from-latest-tag]
 
 Options:
   -h --help               Show this screen.
@@ -38,12 +38,12 @@ Options:
   --to=<to>               e.g. 8057684
   --from-latest-tag       uses the latest tag as starting point. Ignores other --from parameter",
   flag_from: Option<String>,
-  flag_setversion: Option<String>)
+  flag_setversion: Option<String>);
 
 fn main () {
 
     let start_nsec = time::get_time().nsec;
-    let args: Args = FlagParser::parse().unwrap_or_else(|e| e.exit());
+    let args: Args = Args::docopt().decode().unwrap_or_else(|e| e.exit());
 
     let log_reader_config = LogReaderConfig {
         grep: "^feat|^fix|BREAKING'".to_string(),
@@ -61,7 +61,7 @@ fn main () {
       Err(_)      => "".to_string()
     };
 
-    let mut file = File::open_mode(&Path::new("changelog.md"), Open, Write).ok().unwrap();
+    let mut file = File::create(&Path::new("changelog.md")).ok().unwrap();
     let mut writer = LogWriter::new(&mut file, LogWriterOptions {
         repository_link: args.flag_repository,
         version: args.flag_setversion
