@@ -14,7 +14,7 @@ pub fn build_sections(log_entries: Vec<LogEntry>) -> SectionMap {
         match entry.commit_type {
             Feature => {
                 let feature = match sections.features.entry(entry.component.clone()) {
-                    Vacant(v) => v.set(Vec::new()),
+                    Vacant(v) => v.insert(Vec::new()),
                     Occupied(o) => o.into_mut()
                 };
 
@@ -27,7 +27,7 @@ pub fn build_sections(log_entries: Vec<LogEntry>) -> SectionMap {
             },
             Fix => {
                 let fix = match sections.fixes.entry(entry.component.clone()) {
-                    Vacant(v) => v.set(Vec::new()),
+                    Vacant(v) => v.insert(Vec::new()),
                     Occupied(o) => o.into_mut()
                 };
 

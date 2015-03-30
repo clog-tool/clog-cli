@@ -2,7 +2,8 @@ use std::process::Command;
 use std::io::Read;
 use regex::Regex;
 use common:: { LogEntry };
-use common::CommitType::{ Unknown, Feature, Fix };
+use common::CommitType;
+use std::borrow::ToOwned;
 
 #[derive(Debug)]
 pub struct LogReaderConfig {
@@ -24,8 +25,8 @@ pub fn get_latest_tag () -> String {
             .ok().expect("failed to get latest git log");
 
             buf
-            .as_slice().trim_matches('\n')
-            .to_string()
+            .trim_matches('\n')
+            .to_owned()
 }
 
 pub fn get_last_commit () -> String {
@@ -44,7 +45,7 @@ pub fn get_log_entries (config:LogReaderConfig) -> Vec<LogEntry>{
 
     let range = match config.from {
         Some(ref from) => format!("{}..{}", from, config.to),
-        None => "HEAD".to_string()
+        None => "HEAD".to_owned()
     };
 
     let mut buf = String::new();
@@ -61,10 +62,9 @@ pub fn get_log_entries (config:LogReaderConfig) -> Vec<LogEntry>{
             .ok().expect("failed to read git log");
 
             buf
-            .as_slice()
-            .split_str("\n==END==\n")
+            .split("\n==END==\n")
             .map(|commit_str| { parse_raw_commit(commit_str) })
-            .filter(| entry| entry.commit_type != Unknown)
+            .filter(| entry| entry.commit_type != CommitType::Unknown)
             .collect()
 }
 
@@ -74,32 +74,32 @@ static CLOSES_PATTERN: Regex = regex!(r"(?:Closes|Fixes|Resolves)\s((?:#(\d+)(?:
 fn parse_raw_commit(commit_str:&str) -> LogEntry {
     let mut lines = commit_str.split('\n');
 
-    let hash = lines.next().unwrap_or("").to_string();
+    let hash = lines.next().unwrap_or("").to_owned();
 
     let (subject, component, commit_type) =
         match lines.next().and_then(|s| COMMIT_PATTERN.captures(s)) {
             Some(caps) => {
                 let commit_type = match caps.at(1) {
-                    "feat" => Feature,
-                    "fix"  => Fix,
-                    _      => Unknown
+                    Some("feat") => CommitType::Feature,
+                    Some("fix")  => CommitType::Fix,
+                    _            => CommitType::Unknown
                 };
-                let component = caps.at(2).to_string();
-                let subject = caps.at(3).to_string();
+                let component = caps.at(2);
+                let subject = caps.at(3);
                 (subject, component, commit_type)
            },
-           None => ("".to_string(), "".to_string(), Unknown)
+           None => (Some(""), Some(""), CommitType::Unknown)
         };
     let closes = lines.filter_map(|line| CLOSES_PATTERN.captures(line))
-                      .map(|caps| caps.at(2).to_string())
+                      .map(|caps| caps.at(2).unwrap().to_owned())
                       .collect();
 
     LogEntry {
         hash: hash,
-        subject: subject,
-        component: component,
+        subject: subject.unwrap().to_owned(),
+        component: component.unwrap().to_owned(),
         closes: closes,
-        breaks: vec!(),
+        breaks: vec![],
         commit_type: commit_type
     }
 }
