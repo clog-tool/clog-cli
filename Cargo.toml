@@ -1,8 +1,13 @@
 [package]
 
+repository = "https://github.com/thoughtram/clog"
+readme = "README.md"
+keywords = ["git", "log", "changelog", "parser", "parse"]
+license = "MIT"
 name = "clog"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Christoph Burgdorf <christoph.burgdorf@bvsn.org>"]
+description = "A conventional changelog for the rest of us"
 
 [dependencies]
 regex = "*"
