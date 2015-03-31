@@ -5,9 +5,7 @@ version = "0.2.0"
 authors = ["Christoph Burgdorf <christoph.burgdorf@bvsn.org>"]
 
 [dependencies]
-docopt = "*"
-docopt_macros = "*"
 regex = "*"
 regex_macros = "*"
 time = "*"
-rustc-serialize = "*"
+clap = "*"
