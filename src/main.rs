@@ -66,7 +66,6 @@ fn main () {
 
     let start_nsec = time::get_time().nsec;
 
-    ;
     let log_reader_config = LogReaderConfig {
         grep: "^feat|^fix|BREAKING'".to_owned(),
         format: "%H%n%s%n%b%n==END==".to_owned(),
