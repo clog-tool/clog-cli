@@ -27,7 +27,7 @@ Try it!
 
 2. Delete the old log file `rm changelog.md`
 
-3. Run clog `./target/clog --repository=https://github.com/thoughtram/clog --setversion=0.1.0 --subtitle=crazy-dog`
+3. Run clog `./target/release/clog --repository=https://github.com/thoughtram/clog --setversion=0.1.0 --subtitle=crazy-dog`
 
 ## LICENSE
 
