@@ -1,6 +1,7 @@
-use std::collections::hashmap::HashMap;
-use std::collections::hashmap;
-use common::{ LogEntry, SectionMap, Feature, Fix };
+use std::collections::HashMap;
+use std::collections::hash_map::Entry:: { Occupied, Vacant };
+use common::{ LogEntry, SectionMap };
+use common::CommitType::{ Feature, Fix };
 
 pub fn build_sections(log_entries: Vec<LogEntry>) -> SectionMap {
     let mut sections = SectionMap {
@@ -13,8 +14,8 @@ pub fn build_sections(log_entries: Vec<LogEntry>) -> SectionMap {
         match entry.commit_type {
             Feature => {
                 let feature = match sections.features.entry(entry.component.clone()) {
-                    hashmap::Vacant(v) => v.set(Vec::new()),
-                    hashmap::Occupied(o) => o.into_mut()
+                    Vacant(v) => v.insert(Vec::new()),
+                    Occupied(o) => o.into_mut()
                 };
 
                 feature.push(entry.clone());
@@ -26,8 +27,8 @@ pub fn build_sections(log_entries: Vec<LogEntry>) -> SectionMap {
             },
             Fix => {
                 let fix = match sections.fixes.entry(entry.component.clone()) {
-                    hashmap::Vacant(v) => v.set(Vec::new()),
-                    hashmap::Occupied(o) => o.into_mut()
+                    Vacant(v) => v.insert(Vec::new()),
+                    Occupied(o) => o.into_mut()
                 };
 
                 fix.push(entry.clone());

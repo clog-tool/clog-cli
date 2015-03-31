@@ -1,14 +1,14 @@
 use std::fmt;
-use std::collections::hashmap::HashMap;
+use std::collections::HashMap;
 
-#[deriving(Show, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum CommitType {
     Feature,
     Fix,
     Unknown
 }
 
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct LogEntry {
     pub hash: String,
     pub subject: String,
@@ -18,15 +18,15 @@ pub struct LogEntry {
     pub commit_type: CommitType
 }
 
-impl fmt::Show for LogEntry {
+impl fmt::Debug for LogEntry {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{{ 
-            hash:{}, 
-            subject: {},
-            commit_type: {},
-            component: {},
-            closes: {},
-            breaks: {}
+        write!(f, "{{
+            hash:{:?},
+            subject: {:?},
+            commit_type: {:?},
+            component: {:?},
+            closes: {:?},
+            breaks: {:?}
         }}", self.hash, self.subject, self.commit_type, self.component, self.closes, self.breaks)
     }
 }

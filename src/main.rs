@@ -1,20 +1,20 @@
 #![crate_name = "clog"]
-#![comment = "A conventional changelog generator"]
-#![license = "MIT"]
-#![feature(macro_rules, phase)]
+#![feature(plugin)]
+#![plugin(regex_macros)]
 
 extern crate regex;
-#[phase(plugin)]
-extern crate regex_macros;
-extern crate serialize;
-#[phase(plugin)] extern crate docopt_macros;
-extern crate docopt;
 extern crate time;
+
+extern crate clap;
 
 use git::LogReaderConfig;
 use log_writer::{ LogWriter, LogWriterOptions };
-use std::io::{File, Open, Write};
-use docopt::FlagParser;
+use std::fs::File;
+use std::io::Read;
+use std::path::Path;
+use std::borrow::ToOwned;
+
+use clap::{App, Arg};
 
 mod common;
 mod git;
@@ -22,57 +22,82 @@ mod log_writer;
 mod section_builder;
 mod format_util;
 
-docopt!(Args, "clog
-
-Usage:
-  clog [--repository=<link> --setversion=<version> --subtitle=<subtitle>
-        --from=<from> --to=<to> --from-latest-tag]
-
-Options:
-  -h --help               Show this screen.
-  --version               Show version
-  -r --repository=<link>  e.g https://github.com/thoughtram/clog
-  --setversion=<version>  e.g. 0.1.0
-  --subtitle=<subtitle>   e.g. crazy-release-name
-  --from=<from>           e.g. 12a8546
-  --to=<to>               e.g. 8057684
-  --from-latest-tag       uses the latest tag as starting point. Ignores other --from parameter",
-  flag_from: Option<String>,
-  flag_setversion: Option<String>)
 
 fn main () {
+    // Pull version from Cargo.toml
+    let version = format!("{}.{}.{}{}",
+                          env!("CARGO_PKG_VERSION_MAJOR"),
+                          env!("CARGO_PKG_VERSION_MINOR"),
+                          env!("CARGO_PKG_VERSION_PATCH"),
+                          option_env!("CARGO_PKG_VERSION_PRE").unwrap_or(""));
+    let matches = App::new("clog")
+        .version(&version[..])
+        .about("a conventional changelog for the rest of us")
+        .arg(Arg::new("repository")
+            .short("r")
+            .long("repository")
+            .takes_value(true)
+            .required(true)
+            .help("e.g. https://github.com/thoughtram/clog"))
+        .arg(Arg::new("setversion")
+            .long("setversion")
+            .help("e.g. 1.0.1")
+            .takes_value(true))
+        .arg(Arg::new("subtitle")
+            .long("subtitle")
+            .help("e.g. crazy-release-title")
+            .takes_value(true)
+            .required(true))
+        .arg(Arg::new("from")
+            .help("e.g. 12a8546")
+            .long("from")
+            .required(true)
+            .takes_value(true))
+        .arg(Arg::new("to")
+            .long("to")
+            .help("e.g. 8057684")
+            .takes_value(true)
+            .required(true))
+        .arg(Arg::new("from-latest-tag")
+            .long("from-latest-tag")
+            .help("uses the latest tag as starting point (ignores other --from parameters)")
+            .mutually_excludes("from"))
+        .get_matches();
 
     let start_nsec = time::get_time().nsec;
-    let args: Args = FlagParser::parse().unwrap_or_else(|e| e.exit());
 
     let log_reader_config = LogReaderConfig {
-        grep: "^feat|^fix|BREAKING'".to_string(),
-        format: "%H%n%s%n%b%n==END==".to_string(),
-        from: if args.flag_from_latest_tag { Some(git::get_latest_tag()) } else { args.flag_from },
-        to: args.flag_to
+        grep: "^feat|^fix|BREAKING'".to_owned(),
+        format: "%H%n%s%n%b%n==END==".to_owned(),
+        from: if matches.is_present("from-latest-tag") { Some(git::get_latest_tag()) } else { Some(matches.value_of("from").unwrap().to_owned()) },
+        to: matches.value_of("to").unwrap().to_owned()
     };
 
     let commits = git::get_log_entries(log_reader_config);
 
     let sections = section_builder::build_sections(commits.clone());
 
-    let contents = match File::open(&Path::new("changelog.md")).read_to_string() {
-      Ok(content) => content,
-      Err(_)      => "".to_string()
-    };
+    let mut contents = String::new();
+    match File::open(&Path::new("changelog.md")).ok().expect("couldn't open changelog.md").read_to_string(&mut contents) {
+        Ok(_) => (),
+        Err(_) => contents = "".to_owned()
+    }
 
-    let mut file = File::open_mode(&Path::new("changelog.md"), Open, Write).ok().unwrap();
+    let mut file = File::create(&Path::new("changelog.md")).ok().unwrap();
     let mut writer = LogWriter::new(&mut file, LogWriterOptions {
-        repository_link: args.flag_repository,
-        version: args.flag_setversion
-                     .unwrap_or_else(|| format_util::get_short_hash(git::get_last_commit().as_slice()).to_string()),
-        subtitle: args.flag_subtitle
+        repository_link: matches.value_of("repository").unwrap(),
+        version: if matches.is_present("setversion") {
+                    matches.value_of("setversion").unwrap().to_owned()
+                } else {
+                    format_util::get_short_hash(&git::get_last_commit()[..]).to_owned()
+                },
+        subtitle: matches.value_of("subtitle").unwrap().to_owned()
     });
 
     writer.write_header().ok().expect("failed to write header");
     writer.write_section("Bug Fixes", &sections.fixes).ok().expect("failed to write bugfixes");;
     writer.write_section("Features", &sections.features).ok().expect("failed to write features");;
-    writer.write(contents.as_slice()).ok().expect("failed to write contents");;
+    writer.write(&contents[..]).ok().expect("failed to write contents");;
 
     let end_nsec = time::get_time().nsec;
     let elapsed_mssec = (end_nsec - start_nsec) / 1000000;
