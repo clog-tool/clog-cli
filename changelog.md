@@ -1,3 +1,25 @@
+## 0.3.0 (2015-03-31)
+
+
+#### Bug Fixes
+
+
+* **docopts.rs**  updated Cargo.lock to use the latest docopt.rs ([315ad76d](https://github.com/thoughtram/clog/commit/315ad76d238858a7bcae305dc627eb20b9b2c3c0))
+* *****  upgrade to latest Rust ([d230dd8d](https://github.com/thoughtram/clog/commit/d230dd8d323cc0edaebaa55e6a4b0e6a93e527ef))
+* **git**  get_mut_ref() was deprecated, use as_mut().unwrap() ([f073d69a](https://github.com/thoughtram/clog/commit/f073d69a0bc6c3c87fee4375dfc49211fdab6b44))
+* **section_builder**  find_or_insert was deprecated, only some verbose workarounds available yet ([88ccacd5](https://github.com/thoughtram/clog/commit/88ccacd5bd559e8af996f3e67a5d58fe31b3f87c))
+* **cargo**  track working master branch ([9496bc8b](https://github.com/thoughtram/clog/commit/9496bc8b7752d248c1781fbcbff0b969a10defe0))
+
+#### Features
+
+
+* **main**
+  *  implement fallback for --setversion ([d276786a](https://github.com/thoughtram/clog/commit/d276786a383813337a82b0a1f5e72333443517ab))
+  *  include links to closed issues ([602fb29e](https://github.com/thoughtram/clog/commit/602fb29e90aa2c87b14c395b11b3bbbf7ca0a69b))
+* **log_writer**  include anchor in header ([01645092](https://github.com/thoughtram/clog/commit/01645092893fcfb10d22c76624ce8ca493bf282d))
+
+
+
 ## 0.2.0 (2014-09-23)
 
 
