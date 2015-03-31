@@ -25,15 +25,12 @@ pub fn get_latest_tag () -> String {
 }
 
 pub fn get_last_commit () -> String {
-    let mut buf = String::new();
-    Command::new("git")
+    let output = Command::new("git")
             .arg("rev-parse")
             .arg("HEAD")
-            .spawn()
-            .ok().expect("failed to invoke rev-parse")
-            .stdout.as_mut().unwrap().read_to_string(&mut buf)
-            .ok().expect("failed to get last commit");
-    buf
+            .output().unwrap_or_else(|e| panic!("Failed to run git rev-parse with error: {}", e));
+
+    String::from_utf8_lossy(&output.stdout).into_owned()
 }
 
 pub fn get_log_entries (config:LogReaderConfig) -> Vec<LogEntry>{
@@ -43,20 +40,15 @@ pub fn get_log_entries (config:LogReaderConfig) -> Vec<LogEntry>{
         None => "HEAD".to_owned()
     };
 
-    let mut buf = String::new();
-
-    Command::new("git")
+    let output = Command::new("git")
             .arg("log")
             .arg("-E")
             .arg(&format!("--grep={}",config.grep))
             .arg(&format!("--format={}", "%H%n%s%n%b%n==END=="))
             .arg(&range)
-            .spawn()
-            .ok().expect("failed to invoke `git log`")
-            .stdout.as_mut().unwrap().read_to_string(&mut buf)
-            .ok().expect("failed to read git log");
+            .output().unwrap_or_else(|e| panic!("Failed to run git log with error: {}", e));
 
-            buf
+    String::from_utf8_lossy(&output.stdout)
             .split("\n==END==\n")
             .map(|commit_str| { parse_raw_commit(commit_str) })
             .filter(| entry| entry.commit_type != CommitType::Unknown)
