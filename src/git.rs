@@ -14,19 +14,14 @@ pub struct LogReaderConfig {
 }
 
 pub fn get_latest_tag () -> String {
-    let mut buf = String::new();
-    Command::new("git")
+    let output = Command::new("git")
             .arg("rev-list")
             .arg("--tags")
             .arg("--max-count=1")
-            .spawn()
-            .ok().expect("failed to invoke ref-list")
-            .stdout.as_mut().unwrap().read_to_string(&mut buf)
-            .ok().expect("failed to get latest git log");
+            .output().unwrap_or_else(|e| panic!("Failed to run git rev-list with error: {}",e));
+    let buf = String::from_utf8_lossy(&output.stdout);
 
-            buf
-            .trim_matches('\n')
-            .to_owned()
+    buf.trim_matches('\n').to_owned()
 }
 
 pub fn get_last_commit () -> String {
