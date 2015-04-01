@@ -52,7 +52,7 @@ fn main () {
             .takes_value(true))
         .arg(Arg::new("to")
             .long("to")
-            .help("e.g. 8057684")
+            .help("e.g. 8057684 (Defaults to HEAD when omitted)")
             .takes_value(true))
         .arg(Arg::new("from-latest-tag")
             .long("from-latest-tag")
@@ -76,11 +76,6 @@ fn main () {
     let mut contents = String::new();
 
     File::open(&Path::new("changelog.md")).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
-    //
-    // match File::open(&Path::new("changelog.md")) {
-    //     Ok(mut file) => { file.read_to_string(&mut contents).ok(); },
-    //     Err(_) => { contents = "".to_owned(); }
-    // }
 
     let mut file = File::create(&Path::new("changelog.md")).ok().unwrap();
     let mut writer = LogWriter::new(&mut file, LogWriterOptions {
