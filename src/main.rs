@@ -45,8 +45,7 @@ fn main () {
         .arg(Arg::new("subtitle")
             .long("subtitle")
             .help("e.g. crazy-release-title")
-            .takes_value(true)
-            .required(true))
+            .takes_value(true))
         .arg(Arg::new("from")
             .help("e.g. 12a8546")
             .long("from")
@@ -88,7 +87,7 @@ fn main () {
                 } else {
                     format_util::get_short_hash(&git::get_last_commit()[..]).to_owned()
                 },
-        subtitle: matches.value_of("subtitle").unwrap().to_owned()
+        subtitle: matches.value_of("subtitle").unwrap_or("").to_owned()
     });
 
     writer.write_header().ok().expect("failed to write header");
