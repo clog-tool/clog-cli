@@ -51,7 +51,6 @@ fn main () {
         .arg(Arg::new("from")
             .help("e.g. 12a8546")
             .long("from")
-            .required(true)
             .takes_value(true))
         .arg(Arg::new("to")
             .long("to")
@@ -68,7 +67,7 @@ fn main () {
     let log_reader_config = LogReaderConfig {
         grep: "^feat|^fix|BREAKING'".to_owned(),
         format: "%H%n%s%n%b%n==END==".to_owned(),
-        from: if matches.is_present("from-latest-tag") { Some(git::get_latest_tag()) } else { Some(matches.value_of("from").unwrap().to_owned()) },
+        from: if matches.is_present("from-latest-tag") { Some(git::get_latest_tag()) } else { matches.value_of("from").map(|v| v.to_owned()) },
         to: matches.value_of("to").unwrap_or("").to_owned()
     };
 
