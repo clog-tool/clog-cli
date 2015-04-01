@@ -6,26 +6,29 @@ A [conventional](https://github.com/ajoslin/conventional-changelog/blob/master/C
 ### Usage
 
 ```
-Usage:
-  clog [--repository=<link> --setversion=<version> --subtitle=<subtitle>
-        --from=<from> --to=<to> --from-latest-tag]
+USAGE:
+    clog [FLAGS] [OPTIONS] 
 
-Options:
-  -h --help               Show this screen.
-  --version               Show version
-  -r --repository=<link>  e.g https://github.com/thoughtram/clog
-  --setversion=<version>  e.g. 0.1.0
-  --subtitle=<subtitle>   e.g. crazy-release-name
-  --from=<from>           e.g. 12a8546
-  --to=<to>               e.g. 8057684
-  --from-latest-tag       uses the latest tag as starting point. Ignores other --from parameter
+FLAGS:
+        --from-latest-tag    uses the latest tag as starting point (ignores other --from parameters)
+    -v, --version            Prints version information
+    -h, --help               Prints this message
+
+OPTIONS:
+        --subtitle=subtitle         e.g. crazy-release-title
+    -r, --repository=repository     e.g. https://github.com/thoughtram/clog
+        --setversion=setversion     e.g. 1.0.1
+        --to=to                     e.g. 8057684 (Defaults to HEAD when omitted)
+        --from=from                 e.g. 12a8546
 ```
 
 Try it!
 
-1. Build clog `cargo build`
+1. Clone the repo `git clone https://github.com/thoughtram/clog && cd clog`
 
-2. Delete the old log file `rm changelog.md`
+2. Build clog `cargo build --release`
+
+3. Delete the old changelog file `rm changelog.md`
 
 3. Run clog `./target/release/clog --repository=https://github.com/thoughtram/clog --setversion=0.1.0 --subtitle=crazy-dog`
 
