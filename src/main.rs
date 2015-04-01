@@ -74,10 +74,13 @@ fn main () {
     let sections = section_builder::build_sections(commits.clone());
 
     let mut contents = String::new();
-    match File::open(&Path::new("changelog.md")).ok().expect("couldn't open changelog.md").read_to_string(&mut contents) {
-        Ok(_) => (),
-        Err(_) => contents = "".to_owned()
-    }
+
+    File::open(&Path::new("changelog.md")).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
+    //
+    // match File::open(&Path::new("changelog.md")) {
+    //     Ok(mut file) => { file.read_to_string(&mut contents).ok(); },
+    //     Err(_) => { contents = "".to_owned(); }
+    // }
 
     let mut file = File::create(&Path::new("changelog.md")).ok().unwrap();
     let mut writer = LogWriter::new(&mut file, LogWriterOptions {
