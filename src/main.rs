@@ -37,7 +37,6 @@ fn main () {
             .short("r")
             .long("repository")
             .takes_value(true)
-            .required(true)
             .help("e.g. https://github.com/thoughtram/clog"))
         .arg(Arg::new("setversion")
             .long("setversion")
@@ -83,7 +82,7 @@ fn main () {
 
     let mut file = File::create(&Path::new("changelog.md")).ok().unwrap();
     let mut writer = LogWriter::new(&mut file, LogWriterOptions {
-        repository_link: matches.value_of("repository").unwrap(),
+        repository_link: matches.value_of("repository").unwrap_or(""),
         version: if matches.is_present("setversion") {
                     matches.value_of("setversion").unwrap().to_owned()
                 } else {
