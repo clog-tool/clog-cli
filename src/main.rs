@@ -56,8 +56,7 @@ fn main () {
         .arg(Arg::new("to")
             .long("to")
             .help("e.g. 8057684")
-            .takes_value(true)
-            .required(true))
+            .takes_value(true))
         .arg(Arg::new("from-latest-tag")
             .long("from-latest-tag")
             .help("uses the latest tag as starting point (ignores other --from parameters)")
@@ -70,7 +69,7 @@ fn main () {
         grep: "^feat|^fix|BREAKING'".to_owned(),
         format: "%H%n%s%n%b%n==END==".to_owned(),
         from: if matches.is_present("from-latest-tag") { Some(git::get_latest_tag()) } else { Some(matches.value_of("from").unwrap().to_owned()) },
-        to: matches.value_of("to").unwrap().to_owned()
+        to: matches.value_of("to").unwrap_or("").to_owned()
     };
 
     let commits = git::get_log_entries(log_reader_config);
