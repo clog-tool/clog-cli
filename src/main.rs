@@ -55,7 +55,7 @@ fn main () {
             .takes_value(true))
         .arg(Arg::new("to")
             .long("to")
-            .help("e.g. 8057684")
+            .help("e.g. 8057684 (Defaults to HEAD when omitted)")
             .takes_value(true)
             .required(true))
         .arg(Arg::new("from-latest-tag")
