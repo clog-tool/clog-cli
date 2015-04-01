@@ -1,3 +1,19 @@
+<a name="0.3.1"></a>
+## 0.3.1 (2015-04-01)
+
+
+#### Bug Fixes
+
+* **main**
+  *  create changelog.md if it doesn't exist ([2f081dd5](https://github.com/thoughtram/clog/commit/2f081dd51f3205d96d0dae1d4818944c8e930318))
+  *  make --subtitle optional ([e0c31534](https://github.com/thoughtram/clog/commit/e0c31534000cef4b8e64e382ba725ebd0dbfe7b3))
+  *  make --repository optional ([df6cd68e](https://github.com/thoughtram/clog/commit/df6cd68ef3635d57f5cc08d7f57c12d3a3bf3e38))
+  *  make --from optional ([86dd25d4](https://github.com/thoughtram/clog/commit/86dd25d477c27b1f2bd6889368f4a28c66edb6b0))
+  *  make --to param optional ([bcb7d425](https://github.com/thoughtram/clog/commit/bcb7d425b4b4524bf548d3a3332dcd53beef0ecf))
+* **README.md**  update try instructions ([7a90b31f](https://github.com/thoughtram/clog/commit/7a90b31fb5d4ba667d6dcc7c433ed31b1427b716))
+
+
+
 ## 0.3.0 (2015-03-31)
 
 
