@@ -11,6 +11,5 @@ description = "A conventional changelog for the rest of us"
 
 [dependencies]
 regex = "*"
-regex_macros = "*"
 time = "*"
 clap = "*"

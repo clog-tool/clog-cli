@@ -1,6 +1,4 @@
 #![crate_name = "clog"]
-#![feature(plugin)]
-#![plugin(regex_macros)]
 
 extern crate regex;
 extern crate time;
@@ -16,12 +14,16 @@ use std::borrow::ToOwned;
 
 use clap::{App, Arg};
 
+// regex cheat thanks to https://github.com/BurntSushi
+macro_rules! regex(
+    ($s:expr) => (::regex::Regex::new($s).unwrap());
+);
+
 mod common;
 mod git;
 mod log_writer;
 mod section_builder;
 mod format_util;
-
 
 fn main () {
     // Pull version from Cargo.toml
