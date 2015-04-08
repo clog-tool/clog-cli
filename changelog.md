@@ -1,3 +1,13 @@
+<a name="0.3.2"></a>
+## 0.3.2 (2015-04-08)
+
+
+#### Bug Fixes
+
+* **main.rs**  changed the help message of the 'to' in order to reflect default value ([048d6418](https://github.com/thoughtram/clog/commit/048d6418b655153facc9dcbbf93b1ada9d0f3b42))
+
+
+
 <a name="0.3.1"></a>
 ## 0.3.1 (2015-04-01)
 
