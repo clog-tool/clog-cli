@@ -3,13 +3,15 @@ clog
 
 [![Join the chat at https://gitter.im/thoughtram/clog](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/thoughtram/clog?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+[![Build Status](https://travis-ci.org/thoughtram/clog.png?branch=master)](https://travis-ci.org/thoughtram/clog)
+
 A [conventional](https://github.com/ajoslin/conventional-changelog/blob/master/CONVENTIONS.md) changelog for the rest of us
 
 ### Usage
 
 ```
 USAGE:
-    clog [FLAGS] [OPTIONS] 
+    clog [FLAGS] [OPTIONS]
 
 FLAGS:
         --from-latest-tag    uses the latest tag as starting point (ignores other --from parameters)
