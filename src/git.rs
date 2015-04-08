@@ -1,6 +1,4 @@
 use std::process::Command;
-use std::io::Read;
-use regex::Regex;
 use common:: { LogEntry };
 use common::CommitType;
 use std::borrow::ToOwned;
@@ -55,16 +53,15 @@ pub fn get_log_entries (config:LogReaderConfig) -> Vec<LogEntry>{
             .collect()
 }
 
-static COMMIT_PATTERN: Regex = regex!(r"^(.*)\((.*)\):(.*)");
-static CLOSES_PATTERN: Regex = regex!(r"(?:Closes|Fixes|Resolves)\s((?:#(\d+)(?:,\s)?)+)");
 
 fn parse_raw_commit(commit_str:&str) -> LogEntry {
     let mut lines = commit_str.split('\n');
 
     let hash = lines.next().unwrap_or("").to_owned();
 
+    let commit_pattern = regex!(r"^(.*)\((.*)\):(.*)");
     let (subject, component, commit_type) =
-        match lines.next().and_then(|s| COMMIT_PATTERN.captures(s)) {
+        match lines.next().and_then(|s| commit_pattern.captures(s)) {
             Some(caps) => {
                 let commit_type = match caps.at(1) {
                     Some("feat") => CommitType::Feature,
@@ -77,7 +74,8 @@ fn parse_raw_commit(commit_str:&str) -> LogEntry {
            },
            None => (Some(""), Some(""), CommitType::Unknown)
         };
-    let closes = lines.filter_map(|line| CLOSES_PATTERN.captures(line))
+    let closes_pattern = regex!(r"(?:Closes|Fixes|Resolves)\s((?:#(\d+)(?:,\s)?)+)");
+    let closes = lines.filter_map(|line| closes_pattern.captures(line))
                       .map(|caps| caps.at(2).unwrap().to_owned())
                       .collect();
 
