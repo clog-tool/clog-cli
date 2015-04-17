@@ -35,31 +35,15 @@ fn main () {
     let matches = App::new("clog")
         .version(&version[..])
         .about("a conventional changelog for the rest of us")
-        .arg(Arg::new("repository")
-            .short("r")
-            .long("repository")
-            .takes_value(true)
-            .help("e.g. https://github.com/thoughtram/clog"))
-        .arg(Arg::new("setversion")
-            .long("setversion")
-            .help("e.g. 1.0.1")
-            .takes_value(true))
-        .arg(Arg::new("subtitle")
-            .long("subtitle")
-            .help("e.g. crazy-release-title")
-            .takes_value(true))
-        .arg(Arg::new("from")
-            .help("e.g. 12a8546")
-            .long("from")
-            .takes_value(true))
-        .arg(Arg::new("to")
-            .long("to")
-            .help("e.g. 8057684 (Defaults to HEAD when omitted)")
-            .takes_value(true))
-        .arg(Arg::new("from-latest-tag")
-            .long("from-latest-tag")
-            .help("uses the latest tag as starting point (ignores other --from parameters)")
-            .mutually_excludes("from"))
+        .args_from_usage("-r --repository=[repository] 'e.g. https://github.com/thoughtram/clog'
+                          --setversion=[setversion] 'e.g. 1.0.1'
+                          --from=[from] 'e.g. 12a8546'
+                          --subtitle=[subtitle] 'e.g. crazy-release-title'
+                          --to=[to] 'e.g. 8057684 (Defaults to HEAD when omitted)'")
+        // Because --from-latest-tag can't be used with --from, we add it seperately so we can
+        // specify a .mutually_excludes()
+        .arg(Arg::from_usage("--from-latest-tag 'use latest tag as start (instead of --from)'")
+                .mutually_excludes("from"))
         .get_matches();
 
     let start_nsec = time::get_time().nsec;
