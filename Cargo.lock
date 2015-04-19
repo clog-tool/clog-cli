@@ -1,15 +1,15 @@
 [root]
 name = "clog"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
- "clap 0.5.12 (registry+https://github.com/rust-lang/crates.io-index)",
- "regex 0.1.26 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 0.6.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "regex 0.1.28 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.24 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "clap"
-version = "0.5.12"
+version = "0.6.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -24,7 +24,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "regex"
-version = "0.1.26"
+version = "0.1.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
