@@ -3,6 +3,7 @@
 extern crate regex;
 extern crate time;
 
+#[macro_use]
 extern crate clap;
 
 use git::LogReaderConfig;
@@ -26,20 +27,15 @@ mod section_builder;
 mod format_util;
 
 fn main () {
-    // Pull version from Cargo.toml
-    let version = format!("{}.{}.{}{}",
-                          env!("CARGO_PKG_VERSION_MAJOR"),
-                          env!("CARGO_PKG_VERSION_MINOR"),
-                          env!("CARGO_PKG_VERSION_PATCH"),
-                          option_env!("CARGO_PKG_VERSION_PRE").unwrap_or(""));
     let matches = App::new("clog")
-        .version(&version[..])
+        // Pull version from Cargo.toml
+        .version(&crate_version!()[..])
         .about("a conventional changelog for the rest of us")
-        .args_from_usage("-r --repository=[repository] 'e.g. https://github.com/thoughtram/clog'
-                          --setversion=[setversion] 'e.g. 1.0.1'
-                          --from=[from] 'e.g. 12a8546'
-                          --subtitle=[subtitle] 'e.g. crazy-release-title'
-                          --to=[to] 'e.g. 8057684 (Defaults to HEAD when omitted)'")
+        .args_from_usage("-r --repository=[repository]  'e.g. https://github.com/thoughtram/clog'
+                          --setversion=[setversion]     'e.g. 1.0.1'
+                          --from=[from]                 'e.g. 12a8546'
+                          --subtitle=[subtitle]         'e.g. crazy-release-title'
+                          --to=[to]                     'e.g. 8057684 (Defaults to HEAD when omitted)'")
         // Because --from-latest-tag can't be used with --from, we add it seperately so we can
         // specify a .mutually_excludes()
         .arg(Arg::from_usage("--from-latest-tag 'use latest tag as start (instead of --from)'")
