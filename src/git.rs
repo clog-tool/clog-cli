@@ -3,6 +3,8 @@ use common:: { LogEntry };
 use common::CommitType;
 use std::borrow::ToOwned;
 
+use semver; 
+
 #[derive(Debug)]
 pub struct LogReaderConfig {
     pub grep: String,
@@ -16,17 +18,27 @@ pub fn get_latest_tag () -> String {
             .arg("rev-list")
             .arg("--tags")
             .arg("--max-count=1")
-            .output().unwrap_or_else(|e| panic!("Failed to run git rev-list with error: {}",e));
+            .output().unwrap_or_else(|e| panic!("Failed to run 'git rev-list' with error: {}",e));
     let buf = String::from_utf8_lossy(&output.stdout);
 
     buf.trim_matches('\n').to_owned()
+}
+
+pub fn get_latest_tag_ver () -> Result<semver::Version, semver::ParseError> {
+    let output = Command::new("git")
+            .arg("describe")
+            .arg("--tags")
+            .arg("--abbrev=0")
+            .output().unwrap_or_else(|e| panic!("Failed to run 'git describe' with error: {}",e));
+    
+    semver::Version::parse(&String::from_utf8_lossy(&output.stdout)[..])
 }
 
 pub fn get_last_commit () -> String {
     let output = Command::new("git")
             .arg("rev-parse")
             .arg("HEAD")
-            .output().unwrap_or_else(|e| panic!("Failed to run git rev-parse with error: {}", e));
+            .output().unwrap_or_else(|e| panic!("Failed to run 'git rev-parse' with error: {}", e));
 
     String::from_utf8_lossy(&output.stdout).into_owned()
 }
@@ -44,7 +56,7 @@ pub fn get_log_entries (config:LogReaderConfig) -> Vec<LogEntry>{
             .arg(&format!("--grep={}",config.grep))
             .arg(&format!("--format={}", "%H%n%s%n%b%n==END=="))
             .arg(&range)
-            .output().unwrap_or_else(|e| panic!("Failed to run git log with error: {}", e));
+            .output().unwrap_or_else(|e| panic!("Failed to run 'git log' with error: {}", e));
 
     String::from_utf8_lossy(&output.stdout)
             .split("\n==END==\n")
