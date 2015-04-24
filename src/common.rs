@@ -1,11 +1,17 @@
 use std::fmt;
 use std::collections::HashMap;
 
-#[derive(Debug, PartialEq, Clone)]
-pub enum CommitType {
-    Feature,
-    Fix,
-    Unknown
+// Creates an enum where the poritions inside the '(' and ')' act as aliases for that
+// commit type. The only one you MUST specify is 'Unknown ()' 
+//
+// Later you can call CommitType::Fix.aliases() to get all the aliases as a Vec<'statci str>
+commit_type_enum!{
+    #[derive(Debug, PartialEq, Clone)]
+    pub enum CommitType {
+        Feature ( feat, ft ),
+        Fix ( fix, fx),
+        Unknown ()
+    }
 }
 
 #[derive(Clone)]

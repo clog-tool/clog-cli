@@ -7,20 +7,19 @@ extern crate semver;
 #[macro_use]
 extern crate clap;
 
-use git::LogReaderConfig;
-use log_writer::{ LogWriter, LogWriterOptions };
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 use std::borrow::ToOwned;
 
+use common::CommitType;
+use git::LogReaderConfig;
+use log_writer::{ LogWriter, LogWriterOptions };
+
 use clap::{App, Arg};
 
-// regex cheat thanks to https://github.com/BurntSushi
-macro_rules! regex(
-    ($s:expr) => (::regex::Regex::new($s).unwrap());
-);
-
+#[macro_use]
+mod macros;
 mod common;
 mod git;
 mod log_writer;
@@ -50,7 +49,7 @@ fn main () {
     let start_nsec = time::get_time().nsec;
 
     let log_reader_config = LogReaderConfig {
-        grep: "^feat|^fix|BREAKING'".to_owned(),
+        grep: format!("{}BREAKING'", CommitType::all_aliases().iter().fold(String::new(),|acc, al| acc + &format!("^{}|", al)[..])),
         format: "%H%n%s%n%b%n==END==".to_owned(),
         from: if matches.is_present("from-latest-tag") { Some(git::get_latest_tag()) } else { matches.value_of("from").map(|v| v.to_owned()) },
         to: matches.value_of("to").unwrap_or("").to_owned()
