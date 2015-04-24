@@ -5,6 +5,7 @@ use std::borrow::ToOwned;
 
 use semver; 
 
+
 #[derive(Debug)]
 pub struct LogReaderConfig {
     pub grep: String,
@@ -75,11 +76,10 @@ fn parse_raw_commit(commit_str:&str) -> LogEntry {
     let (subject, component, commit_type) =
         match lines.next().and_then(|s| commit_pattern.captures(s)) {
             Some(caps) => {
-                let commit_type = match caps.at(1) {
-                    Some("feat") => CommitType::Feature,
-                    Some("fix")  => CommitType::Fix,
-                    _            => CommitType::Unknown
-                };
+                // The macro that made the CommitType automatically implements std::str::FromStr
+                // with all aliases or falls back to CommitType::Unknown on failure so we can 
+                // call unwrap().
+                let commit_type = caps.at(1).unwrap_or("").parse::<CommitType>().unwrap();
                 let component = caps.at(2);
                 let subject = caps.at(3);
                 (subject, component, commit_type)
