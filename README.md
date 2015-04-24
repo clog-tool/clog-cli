@@ -14,16 +14,20 @@ USAGE:
     clog [FLAGS] [OPTIONS]
 
 FLAGS:
-        --from-latest-tag    uses the latest tag as starting point (ignores other --from parameters)
+        --from-latest-tag    use latest tag as start (instead of --from)
+    -h, --help               Prints help information
+        --major              Increment major version by one (Sets minor and patch to 0)
+        --minor              Increment minor version by one (Sets patch to 0)
+        --patch              Increment patch version by one
     -v, --version            Prints version information
-    -h, --help               Prints this message
 
 OPTIONS:
-        --subtitle=subtitle         e.g. crazy-release-title
+        --from=from                 e.g. 12a8546
     -r, --repository=repository     e.g. https://github.com/thoughtram/clog
         --setversion=setversion     e.g. 1.0.1
+        --subtitle=subtitle         e.g. crazy-release-title
         --to=to                     e.g. 8057684 (Defaults to HEAD when omitted)
-        --from=from                 e.g. 12a8546
+
 ```
 
 Try it!
