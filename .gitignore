@@ -12,3 +12,6 @@
 
 #Others
 .DS_Store
+
+# Temporary files
+.*~
