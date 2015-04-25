@@ -1,20 +1,12 @@
 use std::process::Command;
-use common:: { LogEntry };
-use common::CommitType;
 use std::borrow::ToOwned;
 
 use semver; 
 
+use clogconfig::ClogConfig;
+use common::{ LogEntry, CommitType };
 
-#[derive(Debug)]
-pub struct LogReaderConfig {
-    pub grep: String,
-    pub format: String,
-    pub from: Option<String>,
-    pub to: String
-}
-
-pub fn get_latest_tag () -> String {
+pub fn get_latest_tag() -> String {
     let output = Command::new("git")
             .arg("rev-list")
             .arg("--tags")
@@ -25,17 +17,18 @@ pub fn get_latest_tag () -> String {
     buf.trim_matches('\n').to_owned()
 }
 
-pub fn get_latest_tag_ver () -> Result<semver::Version, semver::ParseError> {
+pub fn get_latest_tag_ver() -> Result<semver::Version, semver::ParseError> {
     let output = Command::new("git")
             .arg("describe")
             .arg("--tags")
             .arg("--abbrev=0")
             .output().unwrap_or_else(|e| panic!("Failed to run 'git describe' with error: {}",e));
     
-    semver::Version::parse(&String::from_utf8_lossy(&output.stdout)[..])
+    let v_string = String::from_utf8_lossy(&output.stdout);
+    semver::Version::parse(&v_string[..].trim_left_matches(|c| c == 'v' || c == 'V'))
 }
 
-pub fn get_last_commit () -> String {
+pub fn get_last_commit() -> String {
     let output = Command::new("git")
             .arg("rev-parse")
             .arg("HEAD")
@@ -44,18 +37,18 @@ pub fn get_last_commit () -> String {
     String::from_utf8_lossy(&output.stdout).into_owned()
 }
 
-pub fn get_log_entries (config:LogReaderConfig) -> Vec<LogEntry>{
+pub fn get_log_entries(config: &ClogConfig) -> Vec<LogEntry>{
 
-    let range = match config.from {
-        Some(ref from) => format!("{}..{}", from, config.to),
-        None => "HEAD".to_owned()
+    let range = match &config.from[..] {
+        "" => "HEAD".to_owned(),
+        _  => format!("{}..{}", config.from, config.to)
     };
 
     let output = Command::new("git")
             .arg("log")
             .arg("-E")
-            .arg(&format!("--grep={}",config.grep))
-            .arg(&format!("--format={}", "%H%n%s%n%b%n==END=="))
+            .arg(&format!("--grep={}", config.grep))
+            .arg(&format!("--format={}", config.format))
             .arg(&range)
             .output().unwrap_or_else(|e| panic!("Failed to run 'git log' with error: {}", e));
 

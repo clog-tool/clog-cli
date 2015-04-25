@@ -4,24 +4,22 @@ macro_rules! regex(
 );
 
 // A macro creating an entry types, and their aliases
-//
-// This is a little hacky, because it expects an Unknown () variant
-//
-// TODO: de-dup with recursive calls
 macro_rules! commit_type_enum {
     (#[derive($($d:ident),+)] pub enum $e:ident { $($v:ident ( $($a:ident),* ) ),+ }) => {
         #[derive($($d,)+)]
         pub enum $e {
+            Unknown,
             $($v,)+
         }
 
         impl $e {
             #[allow(dead_code)]
-            pub fn aliases(&self) -> Vec<&'static str> {
+            pub fn aliases(&self) -> Option<Vec<&'static str>> {
                 match *self {
-                    $($e::$v => vec![
+                    $e::Unknown => None,
+                    $($e::$v    => Some(vec![
                         $( stringify!($a) ),*
-                    ],)+
+                    ]),)+
                 }
             }
             #[allow(dead_code)]
