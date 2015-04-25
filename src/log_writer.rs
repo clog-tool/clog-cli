@@ -1,26 +1,21 @@
 use std::collections::HashMap;
 use std::io::{Write, Result};
-use time;
-use format_util;
-use common::{ LogEntry };
 use std::borrow::ToOwned;
 
-pub struct LogWriter<'a, 'lwo> {
+use time;
+
+use common::LogEntry;
+use clogconfig::ClogConfig;
+
+pub struct LogWriter<'a, 'cc> {
     writer: &'a mut (Write + 'a),
-    options: LogWriterOptions<'lwo>
+    options: &'cc ClogConfig
 }
 
-pub struct LogWriterOptions<'a> {
-    pub repository_link: &'a str,
-    pub version: String,
-    pub subtitle: String 
-}
-
-impl<'a, 'lwo> LogWriter<'a, 'lwo> {
-
-    fn commit_link(hash: &String, options: &LogWriterOptions) -> String {
-        let short_hash = format_util::get_short_hash(&hash[..]);
-        match &options.repository_link[..] {
+impl<'a, 'cc> LogWriter<'a, 'cc> {
+    fn commit_link(hash: &String, options: &ClogConfig) -> String {
+        let short_hash = &hash[0..8];
+        match &options.repo[..] {
             "" => format!("({})", short_hash),
             link => format!("[{}]({}/commit/{})", short_hash, link, hash)
 
@@ -28,7 +23,7 @@ impl<'a, 'lwo> LogWriter<'a, 'lwo> {
     }
 
     fn issue_link(&self, issue: &String) -> String {
-        match &self.options.repository_link[..] {
+        match &self.options.repo[..] {
             "" => format!("(#{})", issue),
             link => format!("[#{}]({}/issues/{})", issue, link, issue)
         }
@@ -97,7 +92,7 @@ impl<'a, 'lwo> LogWriter<'a, 'lwo> {
         write!(self.writer, "{}", content)
     }
 
-    pub fn new<T>(writer: &'a mut T, options: LogWriterOptions<'lwo>) -> LogWriter<'a, 'lwo>
+    pub fn new<T>(writer: &'a mut T, options: &'cc ClogConfig) -> LogWriter<'a, 'cc>
         where T: Write + Send {
         LogWriter {
             writer: writer,
