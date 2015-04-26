@@ -1,0 +1,3 @@
+[clog]
+repository = "https://github.com/thoughtram/clog"
+from-latest-tag = true
