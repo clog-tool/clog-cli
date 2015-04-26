@@ -1,3 +1,16 @@
+<a name="v0.4.0"></a>
+## v0.4.0 (2015-04-26)
+
+
+#### Features
+
+* **aliases**  implement aliases for commit types ([44f7d493](https://github.com/thoughtram/clog/commit/44f7d49389cfae40ad09033c6deaf54852d75d70), closes [#3](https://github.com/thoughtram/clog/issues/3))
+* **clog**  auto increment version with --major, --minor, or --patch ([329e119a](https://github.com/thoughtram/clog/commit/329e119a0326e54cdf4d669b58f835ebb111d47f), closes [#19](https://github.com/thoughtram/clog/issues/19))
+* **build**  add travis-ci support ([671171bb](https://github.com/thoughtram/clog/commit/671171bbda6d3647e0118695b5282b3ed27270ee))
+* **config**  support .clog.toml configuration file ([bb3072b8](https://github.com/thoughtram/clog/commit/bb3072b80416fb3c874845360e9d46704cd53c79))
+
+
+
 <a name="0.3.2"></a>
 ## 0.3.2 (2015-04-08)
 
