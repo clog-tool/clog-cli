@@ -7,6 +7,7 @@ use std::env;
 
 use clap::ArgMatches;
 use toml::{Value, Parser};
+use semver;
 
 use git;
 use common::CommitType;
@@ -33,7 +34,16 @@ impl ClogConfig {
             if matches.is_present("setversion") {
                 matches.value_of("setversion").unwrap().to_owned()
             } else if major || minor || patch {
-                match git::get_latest_tag_ver() {
+                let mut had_v = false;
+                let v_string = git::get_latest_tag_ver();
+                let first_char = v_string.chars().nth(0).unwrap_or(' ');
+                let v_slice = if first_char == 'v' || first_char == 'V' {
+                    had_v = true;
+                    v_string.trim_left_matches(|c| c == 'v' || c == 'V')   
+                } else {
+                    &v_string[..]
+                };
+                match semver::Version::parse(v_slice) {
                     Ok(ref mut v) => {
                         // if-else may be quicker, but it's longer mentally, and this isn't slow
                         match (major, minor, patch) {
@@ -42,7 +52,7 @@ impl ClogConfig {
                             (_,_,true) => { v.patch += 1; },
                             _          => unreachable!()
                         }
-                        format!("v{}", v)
+                        format!("{}{}", if had_v{"v"}else{""}, v)
                     },
                     Err(e) => {
                         return Err(Box::new(format!("Error: {}\n\n\tEnsure the tag format follows Semantic Versioning such as N.N.N\n\tor set the version manually with --setversion <version>" , e )));

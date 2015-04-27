@@ -1,8 +1,6 @@
 use std::process::Command;
 use std::borrow::ToOwned;
 
-use semver; 
-
 use clogconfig::ClogConfig;
 use common::{ LogEntry, CommitType };
 
@@ -17,15 +15,14 @@ pub fn get_latest_tag() -> String {
     buf.trim_matches('\n').to_owned()
 }
 
-pub fn get_latest_tag_ver() -> Result<semver::Version, semver::ParseError> {
+pub fn get_latest_tag_ver() -> String {
     let output = Command::new("git")
             .arg("describe")
             .arg("--tags")
             .arg("--abbrev=0")
             .output().unwrap_or_else(|e| panic!("Failed to run 'git describe' with error: {}",e));
     
-    let v_string = String::from_utf8_lossy(&output.stdout);
-    semver::Version::parse(&v_string[..].trim_left_matches(|c| c == 'v' || c == 'V'))
+    String::from_utf8_lossy(&output.stdout).into_owned()
 }
 
 pub fn get_last_commit() -> String {
