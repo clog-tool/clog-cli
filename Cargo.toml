@@ -15,3 +15,12 @@ time = "*"
 clap = "*"
 semver = "*"
 toml = "*"
+
+[dependencies.regex_macros]
+optional = true
+
+[features]
+default=[]
+
+# for building with nightly and unstable features
+unstable=["regex_macros"]

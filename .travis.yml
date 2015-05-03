@@ -1,1 +1,11 @@
 language: rust
+rust:
+- nightly
+- beta
+before_script:
+- git clone --depth 1 https://github.com/kbknapp/travis-cargo
+- ln -s ./travis-cargo/travis-cargo.py tc
+script:
+- |
+  ./tc cargo build &&
+  ./tc cargo test
