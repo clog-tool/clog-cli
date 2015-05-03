@@ -16,13 +16,14 @@ use clap::{App, Arg, ArgGroup};
 
 use log_writer::LogWriter;
 use clogconfig::ClogConfig;
+use sectionmap::SectionMap;
 
 #[macro_use]
 mod macros;
-mod common;
+mod logentry;
 mod git;
 mod log_writer;
-mod section_builder;
+mod sectionmap;
 mod clogconfig;
 
 // for now the clog configuration file is .clog.toml (perhaps change to use definable
@@ -58,7 +59,7 @@ fn main () {
     
     let commits = git::get_log_entries(&clog_config);
 
-    let sections = section_builder::build_sections(commits);
+    let sm = SectionMap::from_entries(commits);
 
     let mut contents = String::new();
 
@@ -68,8 +69,11 @@ fn main () {
     let mut writer = LogWriter::new(&mut file, &clog_config);
 
     writer.write_header().ok().expect("failed to write header");
-    writer.write_section("Bug Fixes", &sections.fixes).ok().expect("failed to write bugfixes");
-    writer.write_section("Features", &sections.features).ok().expect("failed to write features");
+    for (sec, secmap) in sm.sections {
+        writer.write_section(&sec[..], &secmap).ok().expect(&format!("failed to write {}", sec)[..]);
+    }
+    // writer.write_section("Bug Fixes", &sections.fixes).ok().expect("failed to write bugfixes");
+    // writer.write_section("Features", &sections.features).ok().expect("failed to write features");
     writer.write(&contents[..]).ok().expect("failed to write contents");
 
     let end_nsec = time::get_time().nsec;

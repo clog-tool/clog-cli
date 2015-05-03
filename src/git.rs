@@ -1,8 +1,7 @@
 use std::process::Command;
-use std::borrow::ToOwned;
 
 use clogconfig::ClogConfig;
-use common::{ LogEntry, CommitType };
+use logentry::LogEntry;
 
 pub fn get_latest_tag() -> String {
     let output = Command::new("git")
@@ -51,13 +50,13 @@ pub fn get_log_entries(config: &ClogConfig) -> Vec<LogEntry>{
 
     String::from_utf8_lossy(&output.stdout)
             .split("\n==END==\n")
-            .map(|commit_str| { parse_raw_commit(commit_str) })
-            .filter(| entry| entry.commit_type != CommitType::Unknown)
+            .map(|commit_str| { parse_raw_commit(commit_str, config) })
+            .filter(| entry| entry.commit_type != "Unknown")
             .collect()
 }
 
 
-fn parse_raw_commit(commit_str:&str) -> LogEntry {
+fn parse_raw_commit<'a>(commit_str:&str, config: &'a ClogConfig) -> LogEntry<'a> {
     let mut lines = commit_str.split('\n');
 
     let hash = lines.next().unwrap_or("").to_owned();
@@ -66,15 +65,12 @@ fn parse_raw_commit(commit_str:&str) -> LogEntry {
     let (subject, component, commit_type) =
         match lines.next().and_then(|s| commit_pattern.captures(s)) {
             Some(caps) => {
-                // The macro that made the CommitType automatically implements std::str::FromStr
-                // with all aliases or falls back to CommitType::Unknown on failure so we can 
-                // call unwrap().
-                let commit_type = caps.at(1).unwrap_or("").parse::<CommitType>().unwrap();
+                let commit_type = config.section_for(caps.at(1).unwrap_or(""));
                 let component = caps.at(2);
                 let subject = caps.at(3);
                 (subject, component, commit_type)
            },
-           None => (Some(""), Some(""), CommitType::Unknown)
+           None => (Some(""), Some(""), config.section_for("unk"))
         };
     let closes_pattern = regex!(r"(?:Closes|Fixes|Resolves)\s((?:#(\d+)(?:,\s)?)+)");
     let closes = lines.filter_map(|line| closes_pattern.captures(line))
