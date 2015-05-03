@@ -12,7 +12,7 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
-use clap::{App, Arg};
+use clap::{App, Arg, ArgGroup};
 
 use log_writer::LogWriter;
 use clogconfig::ClogConfig;
@@ -40,15 +40,16 @@ fn main () {
                           --minor                       'Increment minor version by one (Sets patch to 0)'
                           --patch                       'Increment patch version by one'
                           --subtitle=[subtitle]         'e.g. crazy-release-title'
-                          --to=[to]                     'e.g. 8057684 (Defaults to HEAD when omitted)'")
+                          --to=[to]                     'e.g. 8057684 (Defaults to HEAD when omitted)'
+                          --setversion=[ver]            'e.g. 1.0.1'")
         // Because --from-latest-tag can't be used with --from, we add it seperately so we can
         // specify a .mutually_excludes()
         .arg(Arg::from_usage("--from-latest-tag 'use latest tag as start (instead of --from)'")
                 .mutually_excludes("from"))
         // Since --setversion shouldn't be used with any of the --major, --minor, or --match, we
         // set those as exclusions
-        .arg(Arg::from_usage("--setversion=[setversion]     'e.g. 1.0.1'")
-                .mutually_excludes_all(vec!["major", "minor", "patch"]))
+        .arg_group(ArgGroup::with_name("setver")
+                .add_all(vec!["major", "minor", "patch", "ver"]))
         .get_matches();
 
     let start_nsec = time::get_time().nsec;

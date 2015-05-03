@@ -31,8 +31,8 @@ impl ClogConfig {
         let version =  {
             // less typing later...
             let (major, minor, patch) = (matches.is_present("major"), matches.is_present("minor"), matches.is_present("patch"));
-            if matches.is_present("setversion") {
-                matches.value_of("setversion").unwrap().to_owned()
+            if matches.is_present("ver") {
+                matches.value_of("ver").unwrap().to_owned()
             } else if major || minor || patch {
                 let mut had_v = false;
                 let v_string = git::get_latest_tag_ver();
