@@ -56,6 +56,17 @@ Now you can update your `changelog.md` with `clog --patch` (assuming you want to
 
 *Note:* Any options you specify at the command line will override options set in your `.clog.toml`
 
+#### Custom Sections
+
+When using a `.clog.toml` file you can add your own custom sections to show up in your `changelog.md`. Add a `[sections]` table, along with the sections and aliases you'd like to use:
+
+```toml
+[sections]
+MySection = ["mysec", "ms"]
+```
+
+Now if you make a commit message such as `mysec(Component): some message` or `ms(Component): some message` there will be a new "MySection" section along side the "Features" and "Bug Fixes" areas.
+
 ## LICENSE
 
 clog is licensed under the MIT Open Source license. For more information, see the LICENSE file in this repository.
