@@ -2,8 +2,9 @@
 name = "clog"
 version = "0.4.0"
 dependencies = [
- "clap 0.7.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 0.7.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.1.30 (registry+https://github.com/rust-lang/crates.io-index)",
+ "regex_macros 0.1.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "semver 0.1.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.1.20 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -11,7 +12,7 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "0.7.4"
+version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -28,6 +29,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "regex"
 version = "0.1.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "regex_macros"
+version = "0.1.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "regex 0.1.30 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "rustc-serialize"
