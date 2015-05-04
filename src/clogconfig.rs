@@ -1,16 +1,15 @@
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
-use std::borrow::ToOwned;
 use std::fmt::Display;
 use std::env;
+use std::collections::HashMap;
 
 use clap::ArgMatches;
 use toml::{Value, Parser};
 use semver;
 
 use git;
-use common::CommitType;
 use CLOG_CONFIG_FILE;
 
 pub struct ClogConfig {
@@ -21,6 +20,7 @@ pub struct ClogConfig {
     pub subtitle: String,
     pub from: String,
     pub to: String,
+    pub section_map: HashMap<String, Vec<String>>
 }
 
 pub type ConfigResult = Result<ClogConfig, Box<Display>>;
@@ -31,8 +31,8 @@ impl ClogConfig {
         let version =  {
             // less typing later...
             let (major, minor, patch) = (matches.is_present("major"), matches.is_present("minor"), matches.is_present("patch"));
-            if matches.is_present("setversion") {
-                matches.value_of("setversion").unwrap().to_owned()
+            if matches.is_present("ver") {
+                matches.value_of("ver").unwrap().to_owned()
             } else if major || minor || patch {
                 let mut had_v = false;
                 let v_string = git::get_latest_tag_ver();
@@ -68,6 +68,12 @@ impl ClogConfig {
             Ok(d)  => d,
             Err(e) => return Err(Box::new(e)),
         };
+
+        let mut sections = HashMap::new();
+        sections.insert("Features".to_owned(), vec!["ft".to_owned(), "feat".to_owned()]);
+        sections.insert("Bug Fixes".to_owned(), vec!["fx".to_owned(), "fix".to_owned()]);
+        sections.insert("Unknown".to_owned(), vec!["unk".to_owned()]);
+        sections.insert("Breaks".to_owned(), vec![]);
 
         let cfg_file = Path::new(&cwd).join(CLOG_CONFIG_FILE);
         let mut toml_from_latest = None;
@@ -108,6 +114,22 @@ impl ClogConfig {
                 Some(val) => Some(val.as_str().unwrap_or("").to_owned()),
                 None      => Some("".to_owned())
             };
+            match toml_table.get("sections") {
+                Some(table) => {
+                    match table.as_table() {
+                        Some(table) => {
+                            for (sec, val) in table.iter() {
+                                if let Some(vec) = val.as_slice() {
+                                    let alias_vec = vec.iter().map(|v| v.as_str().unwrap_or("").to_owned()).collect::<Vec<_>>();
+                                    sections.insert(sec.to_owned(), alias_vec);
+                                }
+                            }
+                        },
+                        None        => ()
+                    }
+                },
+                None        => ()
+            };
         };
 
         let from = if matches.is_present("from-latest-tag") || toml_from_latest.unwrap_or(false) {
@@ -128,15 +150,27 @@ impl ClogConfig {
             None        => toml_subtitle.unwrap_or("".to_owned())
         };
 
+
         Ok(ClogConfig{
-            grep: format!("{}BREAKING'", CommitType::all_aliases().iter().fold(String::new(),|acc, al| acc + &format!("^{}|", al)[..])),
+            grep: format!("{}BREAKING'", 
+                sections.values()
+                        .map(|v| v.iter().fold(String::new(), |acc, al| {
+                            acc + &format!("^{}|", al)[..]
+                        }))
+                        .fold(String::new(), |acc, al| {
+                            acc + &format!("^{}|", al)[..] 
+                        })),
             format: "%H%n%s%n%b%n==END==".to_owned(),
             repo: repo,
             version: version,
             subtitle: subtitle,
             from: from,
             to: matches.value_of("to").unwrap_or("HEAD").to_owned(),
+            section_map: sections
         })
     }
 
+    pub fn section_for(&self, alias: &str) -> &String {
+        self.section_map.iter().filter(|&(_, v)| v.iter().any(|s| s == alias)).map(|(k, _)| k).next().unwrap_or(self.section_map.keys().filter(|&k| *k == "Unknown".to_owned()).next().unwrap())
+    }
 }

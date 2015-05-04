@@ -1,10 +1,9 @@
 use std::collections::HashMap;
 use std::io::{Write, Result};
-use std::borrow::ToOwned;
 
 use time;
 
-use common::LogEntry;
+use logentry::LogEntry;
 use clogconfig::ClogConfig;
 
 pub struct LogWriter<'a, 'cc> {
