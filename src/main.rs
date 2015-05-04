@@ -44,6 +44,7 @@ fn main () {
                           --patch                       'Increment patch version by one'
                           --subtitle=[subtitle]         'e.g. crazy-release-title'
                           --to=[to]                     'e.g. 8057684 (Defaults to HEAD when omitted)'
+                          -o --outfile=[outfile]        'Where to write the changelog (Defaults to \'changelog.md\')'
                           --setversion=[ver]            'e.g. 1.0.1'")
         // Because --from-latest-tag can't be used with --from, we add it seperately so we can
         // specify a .mutually_excludes()
@@ -58,16 +59,16 @@ fn main () {
     let start_nsec = time::get_time().nsec;
 
     let clog_config = ClogConfig::from_matches(&matches).unwrap_or_else(|e| { println!("{}",e); std::process::exit(1); });
-    
+
     let commits = git::get_log_entries(&clog_config);
 
     let sm = SectionMap::from_entries(commits);
 
     let mut contents = String::new();
 
-    File::open(&Path::new("changelog.md")).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
+    File::open(&Path::new(&clog_config.changelog[..])).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
 
-    let mut file = File::create(&Path::new("changelog.md")).ok().unwrap();
+    let mut file = File::create(&Path::new(&clog_config.changelog[..])).ok().unwrap();
     let mut writer = LogWriter::new(&mut file, &clog_config);
 
     writer.write_header().ok().expect("failed to write header");
