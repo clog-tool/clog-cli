@@ -1,3 +1,17 @@
+<a name="v0.5.0"></a>
+## v0.5.0 (2015-05-04)
+
+
+#### Bug Fixes
+
+* **autoversion**  correctly follow previous version's use of 'v', i.e. v1.2.3 vs 1.2.3 ([c6950fe5](https://github.com/thoughtram/clog/commit/c6950fe5baee959ee18ea2a07e3b5a8cbe5e3716))
+
+#### Features
+
+* **CustomSections**  allows addition of custom sections and aliases ([0fb0d5b7](https://github.com/thoughtram/clog/commit/0fb0d5b7e5189ce60b1effdb04ee7ac50b987ef4), closes [#31](https://github.com/thoughtram/clog/issues/31))
+
+
+
 <a name="v0.4.0"></a>
 ## 0.4.0 (2015-04-26)
 
