@@ -143,10 +143,10 @@ impl ClogConfig {
             };
         };
 
-        let from = if matches.is_present("from-latest-tag") || toml_from_latest.unwrap_or(false) {
-            git::get_latest_tag()
-        } else if let Some(from) = matches.value_of("from") {
+        let from = if let Some(from) = matches.value_of("from") {
             from.to_owned()
+        } else if matches.is_present("from-latest-tag") || toml_from_latest.unwrap_or(false) {
+            git::get_latest_tag()
         } else {
            "".to_owned()
         };
