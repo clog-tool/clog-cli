@@ -117,11 +117,7 @@ impl ClogConfig {
                 Some(val) => Some(val.as_str().unwrap_or("").to_owned()),
                 None      => Some("".to_owned())
             };
-<<<<<<< HEAD
-            changelog = match clog_table.lookup("changelog") {
-=======
-            changelog = match clog_table.lookup("outfile") {
->>>>>>> da3e9b0... fixup! feat(changelog.md): allows specifying custom file for changelog
+            outfile = match clog_table.lookup("outfile") {
                 Some(val) => Some(val.as_str().unwrap_or("changelog.md").to_owned()),
                 None      => None
             };

@@ -11,7 +11,7 @@ A [conventional](https://github.com/ajoslin/conventional-changelog/blob/master/C
 
 ```
 USAGE:
-    clog [FLAGS] [OPTIONS]
+	clog [FLAGS] [OPTIONS]
 
 FLAGS:
         --from-latest-tag    use latest tag as start (instead of --from)
@@ -22,12 +22,12 @@ FLAGS:
     -v, --version            Prints version information
 
 OPTIONS:
-        --from=from                   e.g. 12a8546
-    -r, --repository <repository>     e.g. https://github.com/thoughtram/clog
-        --setversion <setversion>     e.g. 1.0.1
-        --subtitle <subtitle>         e.g. crazy-release-title
-        --to <to>                     e.g. 8057684 (Defaults to HEAD when omitted)
-
+        --from <from>                e.g. 12a8546
+    -o, --outfile <outfile>          Where to write the changelog (Defaults to 'changelog.md')
+    -r, --repository <repository>    e.g. https://github.com/thoughtram/clog
+        --subtitle <subtitle>        e.g. crazy-release-title
+        --to <to>                    e.g. 8057684 (Defaults to HEAD when omitted)
+        --setversion <ver>           e.g. 1.0.1
 ```
 
 ### Try it!
@@ -38,17 +38,22 @@ OPTIONS:
 
 3. Delete the old changelog file `rm changelog.md`
 
-3. Run clog `./target/release/clog -r https://github.com/thoughtram/clog --setversion 0.1.0 --subtitle crazy-dog --from 88ccacd`
+3. Run clog `./target/release/clog -r https://github.com/thoughtram/clog --setversion 0.1.0 --subtitle crazy-dog --from 6d8183f`
 
 ### Default Options
 
-`clog` can also be configured using a default configuration file so that you don't have to specify all the options each time you want to update your changelog. To do this add a `.clog.toml` file to your repository. 
+`clog` can also be configured using a default configuration file so that you don't have to specify all the options each time you want to update your changelog. To do this add a `.clog.toml` file to your repository.
 
 ```toml
 [clog]
 repository = "https://github.com/thoughtram/clog"
 subtitle = "my awesome title"
-# If you use tags, you can set the following
+
+# sets the changelog output file, defaults to "changelog.md" if omitted
+outfile = "MyChangelog.md"
+
+# If you use tags, you can set the following if you wish to only pick
+# up changes since your latest tag
 from-latest-tag = true
 ```
 
@@ -66,6 +71,8 @@ MySection = ["mysec", "ms"]
 ```
 
 Now if you make a commit message such as `mysec(Component): some message` or `ms(Component): some message` there will be a new "MySection" section along side the "Features" and "Bug Fixes" areas.
+
+*NOTE:* Sections with spaces are suppported, such as `"My Special Section" = ["ms", "mysec"]`
 
 ## LICENSE
 
