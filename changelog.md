@@ -1,3 +1,17 @@
+<a name="v0.6.0"></a>
+## v0.6.0 (2015-05-05)
+
+
+#### Bug Fixes
+
+* **--from**  fixes a bug where --from is ignored if from-latest-tag is true .clog.toml ([8e195799](https://github.com/thoughtram/clog/commit/8e1957995788e241626cd620f1117b75d8bff3ce))
+
+#### Features
+
+* **changelog.md**  allows specifying custom file for changelog ([7fa505aa](https://github.com/thoughtram/clog/commit/7fa505aa918832fb2301570c365201cb93ea84ac), closes [#34](https://github.com/thoughtram/clog/issues/34))
+
+
+
 <a name="v0.5.0"></a>
 ## v0.5.0 (2015-05-04)
 
