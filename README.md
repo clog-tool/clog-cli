@@ -7,6 +7,12 @@ clog
 
 A [conventional](https://github.com/ajoslin/conventional-changelog/blob/master/CONVENTIONS.md) changelog for the rest of us
 
+### About
+
+`clog` creates a changelog automatically from your local git metadata. See the `clog`s [changelog.md](https://github.com/thoughtram/clog/blob/master/changelog.md) for an example.
+
+The way this works, is every time you make a commit, you ensure your commit subject line follows the [conventional](https://github.com/thoughtram/clog/blob/master/changelog.md) format. Then when you wish to update your changelog, you simply run `clog` inside your local repository with any options you'd like to specify.
+
 ### Usage
 
 ```
@@ -57,13 +63,13 @@ outfile = "MyChangelog.md"
 from-latest-tag = true
 ```
 
-Now you can update your `changelog.md` with `clog --patch` (assuming you want to update from the latest tag version, and increment your patch version by 1).
+Now you can update your `MyChangelog.md` with `clog --patch` (assuming you want to update from the latest tag version, and increment your patch version by 1).
 
 *Note:* Any options you specify at the command line will override options set in your `.clog.toml`
 
 #### Custom Sections
 
-When using a `.clog.toml` file you can add your own custom sections to show up in your `changelog.md`. Add a `[sections]` table, along with the sections and aliases you'd like to use:
+By default, `clog` will display two sections in your changelog, `Features` and `Bug Fixes`. You can add additional sections by using a `.clog.toml` file. To add more sections, simply add a `[sections]` table, along with the section name and aliases you'd like to use in your commit messages:
 
 ```toml
 [sections]
