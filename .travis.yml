@@ -1,7 +1,7 @@
 language: rust
 rust:
 - nightly
-- beta
+- stable
 before_script:
 - git clone --depth 1 https://github.com/kbknapp/travis-cargo
 - ln -s ./travis-cargo/travis-cargo.py tc
