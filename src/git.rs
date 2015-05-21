@@ -20,7 +20,7 @@ pub fn get_latest_tag_ver() -> String {
             .arg("--tags")
             .arg("--abbrev=0")
             .output().unwrap_or_else(|e| panic!("Failed to run 'git describe' with error: {}",e));
-    
+
     String::from_utf8_lossy(&output.stdout).into_owned()
 }
 
@@ -61,7 +61,7 @@ fn parse_raw_commit<'a>(commit_str:&str, config: &'a ClogConfig) -> LogEntry<'a>
 
     let hash = lines.next().unwrap_or("").to_owned();
 
-    let commit_pattern = regex!(r"^(.*)\((.*)\):(.*)");
+    let commit_pattern = regex!(r"^(.*?)(?:\((.*)?\))?:(.*)");
     let (subject, component, commit_type) =
         match lines.next().and_then(|s| commit_pattern.captures(s)) {
             Some(caps) => {
@@ -74,13 +74,13 @@ fn parse_raw_commit<'a>(commit_str:&str, config: &'a ClogConfig) -> LogEntry<'a>
         };
     let closes_pattern = regex!(r"(?:Closes|Fixes|Resolves)\s((?:#(\d+)(?:,\s)?)+)");
     let closes = lines.filter_map(|line| closes_pattern.captures(line))
-                      .map(|caps| caps.at(2).unwrap().to_owned())
+                      .map(|caps| caps.at(2).unwrap_or("").to_owned())
                       .collect();
 
     LogEntry {
         hash: hash,
         subject: subject.unwrap().to_owned(),
-        component: component.unwrap().to_owned(),
+        component: component.unwrap_or("").to_owned(),
         closes: closes,
         breaks: vec![],
         commit_type: commit_type

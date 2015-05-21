@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::io::{Write, Result};
 
 use time;
@@ -44,21 +44,22 @@ impl<'a, 'cc> LogWriter<'a, 'cc> {
         }
     }
 
-    pub fn write_section(&mut self, title: &str, section: &HashMap<String, Vec<LogEntry>>)
+    pub fn write_section(&mut self, title: &str, section: &BTreeMap<&String, &Vec<LogEntry>>)
                             -> Result<()> {
         if section.len() == 0 { return Ok(()) }
 
         try!(self.writer.write(&format!("\n#### {}\n\n", title)[..].as_bytes()));
 
         for (component, entries) in section.iter() {
-            let nested = entries.len() > 1;
+            let nested = (entries.len() > 1) && !component.is_empty();
 
-            //TODO: implement the empty component stuff
             let prefix = if nested {
                 try!(write!(self.writer, "* **{}**\n", component));
                 "  *".to_owned()
-            } else {
+            } else if !component.is_empty() {
                 format!("* **{}**", component)
+            } else {
+                format!("* ")
             };
 
             for entry in entries.iter() {

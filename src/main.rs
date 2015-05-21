@@ -13,6 +13,7 @@ extern crate clap;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
+use std::collections::BTreeMap;
 
 use clap::{App, Arg, ArgGroup};
 
@@ -73,7 +74,7 @@ fn main () {
 
     writer.write_header().ok().expect("failed to write header");
     for (sec, secmap) in sm.sections {
-        writer.write_section(&sec[..], &secmap).ok().expect(&format!("failed to write {}", sec)[..]);
+        writer.write_section(&sec[..], &secmap.iter().collect::<BTreeMap<_,_>>()).ok().expect(&format!("failed to write {}", sec)[..]);
     }
     // writer.write_section("Bug Fixes", &sections.fixes).ok().expect("failed to write bugfixes");
     // writer.write_section("Features", &sections.features).ok().expect("failed to write features");
