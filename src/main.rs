@@ -1,5 +1,4 @@
 #![crate_name = "clog"]
-#![feature(convert)]
 
 #![cfg_attr(feature = "unstable", feature(plugin))]
 #![cfg_attr(feature = "unstable", plugin(regex_macros))]
@@ -19,7 +18,7 @@ use std::collections::BTreeMap;
 use clap::{App, Arg, ArgGroup};
 
 use log_writer::LogWriter;
-use clogconfig::ClogConfig;
+use clogconfig::{RepoFlavor, ClogConfig};
 use sectionmap::SectionMap;
 
 #[macro_use]
@@ -35,13 +34,14 @@ mod clogconfig;
 const CLOG_CONFIG_FILE: &'static str = ".clog.toml";
 
 fn main () {
+
+    let flavors = RepoFlavor::variants();
     let matches = App::new("clog")
         // Pull version from Cargo.toml
         .version(&format!("v{}", crate_version!())[..])
         .about("a conventional changelog for the rest of us")
         .args_from_usage("-r --repository=[repository]  'e.g. https://github.com/thoughtram/clog'
                           --from=[from]                 'e.g. 12a8546'
-                          --repoflavor=[repoflavor]     'The flavor of repository link to generate, github or stash, defaults to github'
                           --major                       'Increment major version by one (Sets minor and patch to 0)'
                           --minor                       'Increment minor version by one (Sets patch to 0)'
                           --patch                       'Increment patch version by one'
@@ -53,6 +53,10 @@ fn main () {
         // specify a .mutually_excludes()
         .arg(Arg::from_usage("--from-latest-tag 'use latest tag as start (instead of --from)'")
                 .mutually_excludes("from"))
+        // Because we may want to add more "flavors" at a later date, we can automate the process
+        // of enumerating all possible values with clap
+        .arg(Arg::from_usage("--repoflavor=[repoflavor]     'The flavor of repository link to generate, github or stash, defaults to github'")
+            .possible_values(&flavors))
         // Since --setversion shouldn't be used with any of the --major, --minor, or --match, we
         // set those as exclusions
         .arg_group(ArgGroup::with_name("setver")
