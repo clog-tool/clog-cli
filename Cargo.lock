@@ -2,7 +2,7 @@
 name = "clog"
 version = "0.6.0"
 dependencies = [
- "clap 0.8.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 0.9.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.1.30 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex_macros 0.1.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "semver 0.1.19 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -17,7 +17,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "clap"
-version = "0.8.3"
+version = "0.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "ansi_term 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -31,7 +31,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "libc"
-version = "0.1.7"
+version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -68,7 +68,7 @@ version = "0.1.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "gcc 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
