@@ -13,6 +13,9 @@ A [conventional](https://github.com/ajoslin/conventional-changelog/blob/master/C
 
 The way this works, is every time you make a commit, you ensure your commit subject line follows the [conventional](https://github.com/thoughtram/clog/blob/master/changelog.md) format. Then when you wish to update your changelog, you simply run `clog` inside your local repository with any options you'd like to specify.
 
+*NOTE:* `clog` also supports empty components by making commit messages such as `alias: message` or `alias(): message` (i.e. without the component)
+
+
 ### Usage
 
 ```
