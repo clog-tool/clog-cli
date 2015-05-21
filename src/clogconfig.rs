@@ -4,6 +4,8 @@ use std::path::Path;
 use std::fmt::Display;
 use std::env;
 use std::collections::HashMap;
+use std::str::FromStr;
+use std::ascii::AsciiExt;
 
 use clap::ArgMatches;
 use toml::{Value, Parser};
@@ -12,10 +14,32 @@ use semver;
 use git;
 use CLOG_CONFIG_FILE;
 
+pub enum RepoFlavor {
+    Github,
+    Stash
+}
+
+pub struct RepoFlavorError {
+  pub unknown_type: String
+}
+
+impl FromStr for RepoFlavor {
+    type Err = RepoFlavorError;
+
+    fn from_str(s: &str) -> Result<RepoFlavor, RepoFlavorError> {
+        return match s.to_ascii_lowercase().as_str() {
+          "github" => Ok(RepoFlavor::Github),
+          "stash"  => Ok(RepoFlavor::Stash),
+          val      => Err(RepoFlavorError{unknown_type: val.to_owned()})
+        }
+    }
+}
+
 pub struct ClogConfig {
     pub grep: String,
     pub format: String,
     pub repo: String,
+    pub repo_flavor: RepoFlavor,
     pub version: String,
     pub subtitle: String,
     pub from: String,
@@ -80,6 +104,7 @@ impl ClogConfig {
         let mut toml_from_latest = None;
         let mut toml_repo = None;
         let mut toml_subtitle = None;
+        let mut toml_repo_flavor = None;
 
         let mut outfile = None;
 
@@ -117,6 +142,15 @@ impl ClogConfig {
                 Some(val) => Some(val.as_str().unwrap_or("").to_owned()),
                 None      => Some("".to_owned())
             };
+            toml_repo_flavor = match clog_table.lookup("repo-flavor") {
+                Some(val) => match val.as_str().unwrap_or("github").parse::<RepoFlavor>() {
+                    Ok(flavor) => Some(flavor),
+                    Err(err)   => {
+                        return Err(Box::new(format!("Error parsing file {}\n\nCould not parse value of repo-flavor, {} is not a valid repository flavor", CLOG_CONFIG_FILE, err.unknown_type)))
+                    }
+                },
+                None      => Some(RepoFlavor::Github)
+            };
             outfile = match clog_table.lookup("outfile") {
                 Some(val) => Some(val.as_str().unwrap_or("changelog.md").to_owned()),
                 None      => None
@@ -152,6 +186,16 @@ impl ClogConfig {
             None       => toml_repo.unwrap_or("".to_owned())
         };
 
+        let repo_flavor = match matches.value_of("repoflavor") {
+            Some(flavor) => match flavor.parse::<RepoFlavor>() {
+                Ok(val)  => val,
+                Err(err) => {
+                    return Err(Box::new(format!("{} is not a valid option for repoflavor, please specify 'github' or 'stash'", err.unknown_type)));
+                }
+            },
+            None         => toml_repo_flavor.unwrap_or(RepoFlavor::Github)
+        };
+
         let subtitle = match matches.value_of("subtitle") {
             Some(title) => title.to_owned(),
             None        => toml_subtitle.unwrap_or("".to_owned())
@@ -172,6 +216,7 @@ impl ClogConfig {
                         })),
             format: "%H%n%s%n%b%n==END==".to_owned(),
             repo: repo,
+            repo_flavor: repo_flavor,
             version: version,
             subtitle: subtitle,
             from: from,

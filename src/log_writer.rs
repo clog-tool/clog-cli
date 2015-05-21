@@ -5,6 +5,7 @@ use time;
 
 use logentry::LogEntry;
 use clogconfig::ClogConfig;
+use clogconfig::RepoFlavor;
 
 pub struct LogWriter<'a, 'cc> {
     writer: &'a mut (Write + 'a),
@@ -16,15 +17,20 @@ impl<'a, 'cc> LogWriter<'a, 'cc> {
         let short_hash = &hash[0..8];
         match &options.repo[..] {
             "" => format!("({})", short_hash),
-            link => format!("[{}]({}/commit/{})", short_hash, link, hash)
-
+            link => match options.repo_flavor {
+                RepoFlavor::Github => format!("[{}]({}/commit/{})", short_hash, link, hash),
+                RepoFlavor::Stash  => format!("[{}]({}/commits/{})", short_hash, link, hash)
+            }
         }
     }
 
-    fn issue_link(&self, issue: &String) -> String {
+    fn issue_link(&self, issue: &String, options: &ClogConfig) -> String {
         match &self.options.repo[..] {
             "" => format!("(#{})", issue),
-            link => format!("[#{}]({}/issues/{})", issue, link, issue)
+            link => match options.repo_flavor {
+                RepoFlavor::Github => format!("[#{}]({}/issues/{})", issue, link, issue),
+                RepoFlavor::Stash  => format!("(#{})", issue) // Stash doesn't support issue links
+            }
         }
     }
 
@@ -70,7 +76,7 @@ impl<'a, 'cc> LogWriter<'a, 'cc> {
 
                 if entry.closes.len() > 0 {
                     let closes_string = entry.closes.iter()
-                                                    .map(|s| self.issue_link(s))
+                                                    .map(|s| self.issue_link(s, &self.options))
                                                     // FIXME: Connect should be
                                                     // used on the Iterator
                                                     .collect::<Vec<String>>()

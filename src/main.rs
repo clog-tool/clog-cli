@@ -1,4 +1,5 @@
 #![crate_name = "clog"]
+#![feature(convert)]
 
 #![cfg_attr(feature = "unstable", feature(plugin))]
 #![cfg_attr(feature = "unstable", plugin(regex_macros))]
@@ -40,6 +41,7 @@ fn main () {
         .about("a conventional changelog for the rest of us")
         .args_from_usage("-r --repository=[repository]  'e.g. https://github.com/thoughtram/clog'
                           --from=[from]                 'e.g. 12a8546'
+                          --repoflavor=[repoflavor]     'The flavor of repository link to generate, github or stash, defaults to github'
                           --major                       'Increment major version by one (Sets minor and patch to 0)'
                           --minor                       'Increment minor version by one (Sets patch to 0)'
                           --patch                       'Increment patch version by one'
