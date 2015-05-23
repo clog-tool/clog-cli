@@ -17,6 +17,7 @@ pub struct ClogConfig {
     pub format: String,
     pub repo: String,
     pub version: String,
+    pub patch_ver: bool,
     pub subtitle: String,
     pub from: String,
     pub to: String,
@@ -29,6 +30,7 @@ pub type ConfigResult = Result<ClogConfig, Box<Display>>;
 impl ClogConfig {
     pub fn from_matches(matches: &ArgMatches) -> ConfigResult {
         // compute version early, so we can exit on error
+        let mut patch_ver = false;
         let version =  {
             // less typing later...
             let (major, minor, patch) = (matches.is_present("major"), matches.is_present("minor"), matches.is_present("patch"));
@@ -50,7 +52,7 @@ impl ClogConfig {
                         match (major, minor, patch) {
                             (true,_,_) => { v.major += 1; v.minor = 0; v.patch = 0; },
                             (_,true,_) => { v.minor += 1; v.patch = 0; },
-                            (_,_,true) => { v.patch += 1; },
+                            (_,_,true) => { v.patch += 1; patch_ver = true; },
                             _          => unreachable!()
                         }
                         format!("{}{}", if had_v{"v"}else{""}, v)
@@ -173,6 +175,7 @@ impl ClogConfig {
             format: "%H%n%s%n%b%n==END==".to_owned(),
             repo: repo,
             version: version,
+            patch_ver: patch_ver,
             subtitle: subtitle,
             from: from,
             to: matches.value_of("to").unwrap_or("HEAD").to_owned(),
