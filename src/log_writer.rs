@@ -34,7 +34,11 @@ impl<'a, 'cc> LogWriter<'a, 'cc> {
             _ => format!(" {}", self.options.subtitle)
         };
 
-        let version_text = format!("## {}{}", self.options.version, subtitle);
+        let version_text = if self.options.patch_ver {
+            format!("### {}{}", self.options.version, subtitle)
+        } else {
+            format!("## {}{}", self.options.version, subtitle)
+        };
 
         let date = time::now_utc();
 
