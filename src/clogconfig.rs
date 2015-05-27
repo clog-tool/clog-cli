@@ -13,8 +13,9 @@ use git;
 use CLOG_CONFIG_FILE;
 
 arg_enum!{
-    pub enum RepoFlavor {
+    pub enum LinkStyle {
         Github,
+        Gitlab,
         Stash
     }
 }
@@ -23,7 +24,7 @@ pub struct ClogConfig {
     pub grep: String,
     pub format: String,
     pub repo: String,
-    pub repo_flavor: RepoFlavor,
+    pub link_style: LinkStyle,
     pub version: String,
     pub subtitle: String,
     pub from: String,
@@ -88,7 +89,7 @@ impl ClogConfig {
         let mut toml_from_latest = None;
         let mut toml_repo = None;
         let mut toml_subtitle = None;
-        let mut toml_repo_flavor = None;
+        let mut toml_link_style = None;
 
         let mut outfile = None;
 
@@ -126,14 +127,14 @@ impl ClogConfig {
                 Some(val) => Some(val.as_str().unwrap_or("").to_owned()),
                 None      => Some("".to_owned())
             };
-            toml_repo_flavor = match clog_table.lookup("repo-flavor") {
-                Some(val) => match val.as_str().unwrap_or("github").parse::<RepoFlavor>() {
-                    Ok(flavor) => Some(flavor),
+            toml_link_style = match clog_table.lookup("link-style") {
+                Some(val) => match val.as_str().unwrap_or("github").parse::<LinkStyle>() {
+                    Ok(style) => Some(style),
                     Err(err)   => {
                         return Err(Box::new(format!("Error parsing file {}\n\n{}", CLOG_CONFIG_FILE, err)))
                     }
                 },
-                None      => Some(RepoFlavor::Github)
+                None      => Some(LinkStyle::Github)
             };
             outfile = match clog_table.lookup("outfile") {
                 Some(val) => Some(val.as_str().unwrap_or("changelog.md").to_owned()),
@@ -170,7 +171,7 @@ impl ClogConfig {
             None       => toml_repo.unwrap_or("".to_owned())
         };
 
-        let repo_flavor = value_t!(matches.value_of("repoflavor"), RepoFlavor).unwrap_or(toml_repo_flavor.unwrap_or(RepoFlavor::Github));
+        let link_style = value_t!(matches.value_of("link-style"), LinkStyle).unwrap_or(toml_link_style.unwrap_or(LinkStyle::Github));
 
 
         let subtitle = match matches.value_of("subtitle") {
@@ -193,7 +194,7 @@ impl ClogConfig {
                         })),
             format: "%H%n%s%n%b%n==END==".to_owned(),
             repo: repo,
-            repo_flavor: repo_flavor,
+            link_style: link_style,
             version: version,
             subtitle: subtitle,
             from: from,

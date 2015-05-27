@@ -5,7 +5,7 @@ use time;
 
 use logentry::LogEntry;
 use clogconfig::ClogConfig;
-use clogconfig::RepoFlavor;
+use clogconfig::LinkStyle;
 
 pub struct LogWriter<'a, 'cc> {
     writer: &'a mut (Write + 'a),
@@ -17,9 +17,10 @@ impl<'a, 'cc> LogWriter<'a, 'cc> {
         let short_hash = &hash[0..8];
         match &options.repo[..] {
             "" => format!("({})", short_hash),
-            link => match options.repo_flavor {
-                RepoFlavor::Github => format!("[{}]({}/commit/{})", short_hash, link, hash),
-                RepoFlavor::Stash  => format!("[{}]({}/commits/{})", short_hash, link, hash)
+            link => match options.link_style {
+                LinkStyle::Github => format!("[{}]({}/commit/{})", short_hash, link, hash),
+                LinkStyle::Gitlab => format!("[{}]({}/commit/{})", short_hash, link, hash),
+                LinkStyle::Stash  => format!("[{}]({}/commits/{})", short_hash, link, hash)
             }
         }
     }
@@ -27,9 +28,10 @@ impl<'a, 'cc> LogWriter<'a, 'cc> {
     fn issue_link(&self, issue: &String, options: &ClogConfig) -> String {
         match &self.options.repo[..] {
             "" => format!("(#{})", issue),
-            link => match options.repo_flavor {
-                RepoFlavor::Github => format!("[#{}]({}/issues/{})", issue, link, issue),
-                RepoFlavor::Stash  => format!("(#{})", issue) // Stash doesn't support issue links
+            link => match options.link_style {
+                LinkStyle::Github => format!("[#{}]({}/issues/{})", issue, link, issue),
+                LinkStyle::Gitlab => format!("[#{}]({}/issues/{})", issue, link, issue),
+                LinkStyle::Stash  => format!("(#{})", issue) // Stash doesn't support issue links
             }
         }
     }
