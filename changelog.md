@@ -1,3 +1,15 @@
+<a name="0.7.0"></a>
+## 0.7.0 (2015-05-29)
+
+
+#### Features
+
+* **repoflavor**  allows specifying the flavor of link to generate ([b3dd5762](https://github.com/thoughtram/clog/commit/b3dd5762544f05b7ed7da5dc67d9d17ba80332ff))
+* **sections**  allows users to use empty components in commit subjects ([71b32ee6](https://github.com/thoughtram/clog/commit/71b32ee6776d9f05771ee884b12c25d98a7eb59f), closes [#2](https://github.com/thoughtram/clog/issues/2))
+* **version headers**  distinguishes between minor and patch version headers ([c5c02764](https://github.com/thoughtram/clog/commit/c5c02764bc715dbf6cc758f7b628b29036ad8e80), closes [#5](https://github.com/thoughtram/clog/issues/5))
+
+
+
 <a name="v0.6.0"></a>
 ## v0.6.0 (2015-05-05)
 

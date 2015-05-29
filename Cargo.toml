@@ -5,7 +5,7 @@ readme = "README.md"
 keywords = ["git", "log", "changelog", "parser", "parse"]
 license = "MIT"
 name = "clog"
-version = "0.6.0"
+version = "0.7.0"
 authors = ["Christoph Burgdorf <christoph.burgdorf@bvsn.org>"]
 description = "A conventional changelog for the rest of us"
 
