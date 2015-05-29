@@ -12,10 +12,19 @@ use semver;
 use git;
 use CLOG_CONFIG_FILE;
 
+arg_enum!{
+    pub enum LinkStyle {
+        Github,
+        Gitlab,
+        Stash
+    }
+}
+
 pub struct ClogConfig {
     pub grep: String,
     pub format: String,
     pub repo: String,
+    pub link_style: LinkStyle,
     pub version: String,
     pub patch_ver: bool,
     pub subtitle: String,
@@ -82,6 +91,7 @@ impl ClogConfig {
         let mut toml_from_latest = None;
         let mut toml_repo = None;
         let mut toml_subtitle = None;
+        let mut toml_link_style = None;
 
         let mut outfile = None;
 
@@ -119,6 +129,15 @@ impl ClogConfig {
                 Some(val) => Some(val.as_str().unwrap_or("").to_owned()),
                 None      => Some("".to_owned())
             };
+            toml_link_style = match clog_table.lookup("link-style") {
+                Some(val) => match val.as_str().unwrap_or("github").parse::<LinkStyle>() {
+                    Ok(style) => Some(style),
+                    Err(err)   => {
+                        return Err(Box::new(format!("Error parsing file {}\n\n{}", CLOG_CONFIG_FILE, err)))
+                    }
+                },
+                None      => Some(LinkStyle::Github)
+            };
             outfile = match clog_table.lookup("outfile") {
                 Some(val) => Some(val.as_str().unwrap_or("changelog.md").to_owned()),
                 None      => None
@@ -154,6 +173,9 @@ impl ClogConfig {
             None       => toml_repo.unwrap_or("".to_owned())
         };
 
+        let link_style = value_t!(matches.value_of("link-style"), LinkStyle).unwrap_or(toml_link_style.unwrap_or(LinkStyle::Github));
+
+
         let subtitle = match matches.value_of("subtitle") {
             Some(title) => title.to_owned(),
             None        => toml_subtitle.unwrap_or("".to_owned())
@@ -174,6 +196,7 @@ impl ClogConfig {
                         })),
             format: "%H%n%s%n%b%n==END==".to_owned(),
             repo: repo,
+            link_style: link_style,
             version: version,
             patch_ver: patch_ver,
             subtitle: subtitle,

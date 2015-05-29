@@ -34,6 +34,7 @@ OPTIONS:
         --from <from>                e.g. 12a8546
     -o, --outfile <outfile>          Where to write the changelog (Defaults to 'changelog.md')
     -r, --repository <repository>    e.g. https://github.com/thoughtram/clog
+        --repoflavor <flavor>        e.g. github
         --subtitle <subtitle>        e.g. crazy-release-title
         --to <to>                    e.g. 8057684 (Defaults to HEAD when omitted)
         --setversion <ver>           e.g. 1.0.1
@@ -57,6 +58,9 @@ OPTIONS:
 [clog]
 repository = "https://github.com/thoughtram/clog"
 subtitle = "my awesome title"
+
+# specify the flavor of repo links to generate, defaults to "github" if omitted
+repo-flavor = "github"
 
 # sets the changelog output file, defaults to "changelog.md" if omitted
 outfile = "MyChangelog.md"
