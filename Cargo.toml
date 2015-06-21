@@ -23,4 +23,6 @@ optional = true
 default=[]
 
 # for building with nightly and unstable features
-unstable=["regex_macros"]
+# until regex_macros compiles with nightly again, this should be commented out
+# unstable = ["regex_macros"]
+unstable=[]

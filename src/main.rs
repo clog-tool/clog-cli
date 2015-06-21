@@ -1,7 +1,10 @@
 #![crate_name = "clog"]
 
-#![cfg_attr(feature = "unstable", feature(plugin))]
-#![cfg_attr(feature = "unstable", plugin(regex_macros))]
+// Until regex_macros compiles with nightly, these should be commented out
+//
+// #![cfg_attr(feature = "unstable", feature(plugin))]
+// #![cfg_attr(feature = "unstable", plugin(regex_macros))]
+
 extern crate regex;
 extern crate time;
 extern crate semver;
