@@ -3,38 +3,15 @@ use std::io::{Write, Result};
 
 use time;
 
-use logentry::LogEntry;
-use clogconfig::ClogConfig;
-use clogconfig::LinkStyle;
+use git::Commit;
+use clog::Clog;
 
 pub struct LogWriter<'a, 'cc> {
     writer: &'a mut (Write + 'a),
-    options: &'cc ClogConfig
+    options: &'cc Clog
 }
 
 impl<'a, 'cc> LogWriter<'a, 'cc> {
-    fn commit_link(hash: &String, options: &ClogConfig) -> String {
-        let short_hash = &hash[0..8];
-        match &options.repo[..] {
-            "" => format!("({})", short_hash),
-            link => match options.link_style {
-                LinkStyle::Github => format!("[{}]({}/commit/{})", short_hash, link, hash),
-                LinkStyle::Gitlab => format!("[{}]({}/commit/{})", short_hash, link, hash),
-                LinkStyle::Stash  => format!("[{}]({}/commits/{})", short_hash, link, hash)
-            }
-        }
-    }
-
-    fn issue_link(&self, issue: &String, options: &ClogConfig) -> String {
-        match &self.options.repo[..] {
-            "" => format!("(#{})", issue),
-            link => match options.link_style {
-                LinkStyle::Github => format!("[#{}]({}/issues/{})", issue, link, issue),
-                LinkStyle::Gitlab => format!("[#{}]({}/issues/{})", issue, link, issue),
-                LinkStyle::Stash  => format!("(#{})", issue) // Stash doesn't support issue links
-            }
-        }
-    }
 
     pub fn write_header(&mut self) -> Result<()> {
         let subtitle = match self.options.subtitle.len() {
@@ -56,7 +33,7 @@ impl<'a, 'cc> LogWriter<'a, 'cc> {
         }
     }
 
-    pub fn write_section(&mut self, title: &str, section: &BTreeMap<&String, &Vec<LogEntry>>)
+    pub fn write_section(&mut self, title: &str, section: &BTreeMap<&String, &Vec<Commit>>)
                             -> Result<()> {
         if section.len() == 0 { return Ok(()) }
 
@@ -78,11 +55,12 @@ impl<'a, 'cc> LogWriter<'a, 'cc> {
                 try!(write!(self.writer, "{} {} ({}",
                                          prefix,
                                          entry.subject,
-                                         LogWriter::commit_link(&entry.hash, &self.options)));
+                                         self.options.link_style
+                                             .commit_link(&entry.hash[..], &self.options.repo[..])));
 
                 if entry.closes.len() > 0 {
                     let closes_string = entry.closes.iter()
-                                                    .map(|s| self.issue_link(s, &self.options))
+                                                    .map(|s| self.options.link_style.issue_link(&s[..], &self.options.repo[..]))
                                                     // FIXME: Connect should be
                                                     // used on the Iterator
                                                     .collect::<Vec<String>>()
@@ -104,7 +82,7 @@ impl<'a, 'cc> LogWriter<'a, 'cc> {
         write!(self.writer, "{}", content)
     }
 
-    pub fn new<T>(writer: &'a mut T, options: &'cc ClogConfig) -> LogWriter<'a, 'cc>
+    pub fn new<T>(writer: &'a mut T, options: &'cc Clog) -> LogWriter<'a, 'cc>
         where T: Write + Send {
         LogWriter {
             writer: writer,

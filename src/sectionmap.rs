@@ -1,16 +1,16 @@
 use std::collections::HashMap;
 use std::collections::BTreeMap;
 
-use logentry::LogEntry;
+use git::Commit;
 
-pub type ComponentMap<'a> = BTreeMap<String, Vec<LogEntry<'a>>>;
+pub type ComponentMap = BTreeMap<String, Vec<Commit>>;
 
-pub struct SectionMap<'a> {
-    pub sections: HashMap<String, ComponentMap<'a>>
+pub struct SectionMap {
+    pub sections: HashMap<String, ComponentMap>
 }
 
-impl<'a> SectionMap<'a> {
-    pub fn from_entries(log_entries: Vec<LogEntry>) -> SectionMap {
+impl SectionMap {
+    pub fn from_commits(log_entries: Vec<Commit>) -> SectionMap {
         let mut sm = SectionMap {
             sections: HashMap::new()
         };
