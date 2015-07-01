@@ -21,6 +21,7 @@ optional = true
 
 [features]
 default=[]
+debug=[]
 
 # for building with nightly and unstable features
 # until regex_macros compiles with nightly again, this should be commented out

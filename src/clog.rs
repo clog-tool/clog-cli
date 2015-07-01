@@ -71,6 +71,7 @@ pub type ClogResult = Result<Clog, Box<Display>>;
 
 impl Clog {
     fn _new() -> Clog {
+        debugln!("Creating private default clog");
         let mut sections = HashMap::new();
         sections.insert("Features".to_owned(), vec!["ft".to_owned(), "feat".to_owned()]);
         sections.insert("Bug Fixes".to_owned(), vec!["fx".to_owned(), "fix".to_owned()]);
@@ -101,25 +102,40 @@ impl Clog {
         }
     }
 
-    pub fn new<P: AsRef<Path>>(git_dir: P, work_tree: P, cfg_file: P) -> ClogResult {
+    pub fn new() -> ClogResult {
+        debugln!("Creating public default clog");
+        Clog::from_file(CLOG_CONFIG_FILE)
+    }
+
+    pub fn with_all<P: AsRef<Path>>(git_dir: P, work_tree: P, cfg_file: P) -> ClogResult {
+        debugln!("Creating clog with \n\tgit_dir: {:?}\n\twork_tree: {:?}\n\tcfg_file: {:?}", 
+            git_dir.as_ref(), 
+            work_tree.as_ref(), 
+            cfg_file.as_ref());
         let clog = try!(Clog::with_dirs(git_dir, 
                                             work_tree));
         clog.try_config_file(cfg_file.as_ref())   
     }
 
     pub fn with_dir_and_file<P: AsRef<Path>>(dir: P, cfg_file: P) -> ClogResult {
+        debugln!("Creating clog with \n\tdir: {:?}\n\tcfg_file: {:?}", 
+            dir.as_ref(), 
+            cfg_file.as_ref());
         let clog = try!(Clog::with_dir(dir));
         clog.try_config_file(cfg_file.as_ref())   
     }
 
     pub fn with_dir<P: AsRef<Path>>(dir: P) -> ClogResult {
+        debugln!("Creating clog with \n\tdir: {:?}", dir.as_ref());
         let mut clog = Clog::_new();
         if dir.as_ref().ends_with(".git") {
+            debugln!("dir ends with .git");
             let mut wd = dir.as_ref().to_path_buf();
             clog.git_dir = Some(wd.clone());
             wd.pop();
             clog.git_work_tree = Some(wd);
         } else {
+            debugln!("dir doesn't end with .git");
             let mut gd = dir.as_ref().to_path_buf();
             clog.git_work_tree = Some(gd.clone());
             gd.push(".git");
@@ -129,6 +145,9 @@ impl Clog {
     }
 
     pub fn with_dirs<P: AsRef<Path>>(git_dir: P, work_tree: P) -> ClogResult {
+        debugln!("Creating clog with \n\tgit_dir: {:?}\n\twork_tree: {:?}", 
+            git_dir.as_ref(), 
+            work_tree.as_ref());
         let mut clog = Clog::_new();
         clog.git_dir = Some(git_dir.as_ref().to_path_buf());
         clog.git_work_tree = Some(work_tree.as_ref().to_path_buf());
@@ -136,14 +155,17 @@ impl Clog {
     }
 
     pub fn from_file<P: AsRef<Path>>(file: P) -> ClogResult {
+        debugln!("Creating clog with \n\tfile: {:?}", file.as_ref());
         // Determine if the cfg_file was relative or not
         let cfg_file = if file.as_ref().is_relative() {
+            debugln!("file is relative");
             let cwd = match env::current_dir() {
                 Ok(d)  => d,
                 Err(e) => return Err(Box::new(e)),
             };
             Path::new(&cwd).join(file.as_ref())
         } else {
+            debugln!("file is absolute");
             file.as_ref().to_path_buf()
         };
 
@@ -154,6 +176,7 @@ impl Clog {
     }
 
     fn try_config_file(mut self, cfg_file: &Path) -> ClogResult {
+        debugln!("Trying to use config file: {:?}", cfg_file);
         let mut toml_from_latest = None;
         let mut toml_repo = None;
         let mut toml_subtitle = None;
@@ -259,7 +282,7 @@ impl Clog {
         let mut clog = if let Some(cfg) = matches.value_of("config") {
             if matches.is_present("workdir") && matches.is_present("gitdir") {
                // use --config --work-tree --git-dir
-               try!(Clog::new(matches.value_of("gitdir").unwrap(),
+               try!(Clog::with_all(matches.value_of("gitdir").unwrap(),
                               matches.value_of("workdir").unwrap(),
                               cfg))
             } else if let Some(dir) = matches.value_of("workdir") {
