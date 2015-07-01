@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, BTreeMap};
 use std::convert::AsRef;
 use std::env;
 use std::fmt::Display;
@@ -12,6 +12,9 @@ use toml::{Value, Parser};
 use semver;
 
 use git::{Commits, Commit};
+use log_writer::LogWriter;
+use sectionmap::SectionMap;
+
 use CLOG_CONFIG_FILE;
 
 arg_enum!{
@@ -552,5 +555,26 @@ impl Clog {
 
     pub fn section_for(&self, alias: &str) -> &String {
         self.section_map.iter().filter(|&(_, v)| v.iter().any(|s| s == alias)).map(|(k, _)| k).next().unwrap_or(self.section_map.keys().filter(|&k| *k == "Unknown".to_owned()).next().unwrap())
+    }
+
+    pub fn write_changelog_to<P: AsRef<Path>>(&self, cl: P) {
+        let sm = SectionMap::from_commits(self.get_commits());
+
+        let mut contents = String::new();
+
+        File::open(cl.as_ref()).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
+
+        let mut file = File::create(cl.as_ref()).ok().unwrap();
+        let mut writer = LogWriter::new(&mut file, self);
+
+        writer.write_header().ok().expect("failed to write header");
+        for (sec, secmap) in sm.sections {
+            writer.write_section(&sec[..], &secmap.iter().collect::<BTreeMap<_,_>>()).ok().expect(&format!("failed to write {}", sec)[..]);
+        }
+        writer.write(&contents[..]).ok().expect("failed to write contents");
+    }
+
+    pub fn write_changelog(&self) {
+        self.write_changelog_to(&self.changelog[..]);
     }
 }
