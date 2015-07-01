@@ -121,12 +121,12 @@ impl Clog {
         debugln!("Creating clog with \n\tdir: {:?}\n\tcfg_file: {:?}", 
             dir.as_ref(), 
             cfg_file.as_ref());
-        let clog = try!(Clog::with_dir(dir));
+        let clog = try!(Clog::_with_dir(dir));
         clog.try_config_file(cfg_file.as_ref())   
     }
 
-    pub fn with_dir<P: AsRef<Path>>(dir: P) -> ClogResult {
-        debugln!("Creating clog with \n\tdir: {:?}", dir.as_ref());
+    fn _with_dir<P: AsRef<Path>>(dir: P) -> ClogResult {
+        debugln!("Creating private clog with \n\tdir: {:?}", dir.as_ref());
         let mut clog = Clog::_new();
         if dir.as_ref().ends_with(".git") {
             debugln!("dir ends with .git");
@@ -141,6 +141,12 @@ impl Clog {
             gd.push(".git");
             clog.git_dir = Some(gd);
         }
+
+        Ok(clog)
+    }
+
+    pub fn with_dir<P: AsRef<Path>>(dir: P) -> ClogResult {
+        let clog = try!(Clog::_with_dir(dir));
         clog.try_config_file(Path::new(CLOG_CONFIG_FILE))
     }
 
@@ -170,9 +176,9 @@ impl Clog {
         };
 
         // We assume whatever dir the .clog.toml file is also contains the git metadata
-        let mut cfg = cfg_file.clone();
-        cfg.pop();
-        Clog::with_dir(cfg)
+        let mut dir = cfg_file.clone();
+        dir.pop();
+        Clog::with_dir_and_file(dir, cfg_file)
     }
 
     fn try_config_file(mut self, cfg_file: &Path) -> ClogResult {
@@ -272,13 +278,6 @@ impl Clog {
     }
 
     pub fn from_matches(matches: &ArgMatches) -> ClogResult {
-            // --config
-        // --config --work-tree
-        // --config --git-dir
-        // --config --work-tree --git-dir
-            // --work-tree
-            // --git-dir
-            // --work-tree --git-dir
         let mut clog = if let Some(cfg) = matches.value_of("config") {
             if matches.is_present("workdir") && matches.is_present("gitdir") {
                // use --config --work-tree --git-dir
