@@ -21,15 +21,17 @@ fn main () {
         .args_from_usage("-r, --repository=[repo]   'Repo used for link generation (without the .git, e.g. https://github.com/thoughtram/clog)'
                           -f, --from=[from]         'e.g. 12a8546'
                           -M, --major               'Increment major version by one (Sets minor and patch to 0)'
+                          -g, --git-dir=[gitdir]    'Local .git directory (defaults to current dir + \'.git\')*'
+                          -w, --work-tree=[workdir] 'Local working tree of the git project (defaults to current dir)*' 
                           -m, --minor               'Increment minor version by one (Sets patch to 0)'
                           -p, --patch               'Increment patch version by one'
                           -s, --subtitle=[subtitle] 'e.g. \"Crazy Release Title\"'
                           -t, --to=[to]             'e.g. 8057684 (Defaults to HEAD when omitted)'
                           -o, --outfile=[outfile]   'Where to write the changelog (Defaults to \'changelog.md\')'
-                          -c, --config              'The Clog Configuration TOML file to use (Defaults to \'.clog.toml\')'
+                          -c, --config              'The Clog Configuration TOML file to use (Defaults to \'.clog.toml\')**'
                           --setversion=[ver]        'e.g. 1.0.1'")
         // Because --from-latest-tag can't be used with --from, we add it seperately so we can
-        // specify a .mutually_excludes()
+        // specify a .conflicts_with()
         .arg(Arg::from_usage("-F, --from-latest-tag 'use latest tag as start (instead of --from)'")
                 .conflicts_with("from"))
         // Because we may want to add more "flavors" at a later date, we can automate the process
@@ -40,13 +42,22 @@ fn main () {
         // set those as exclusions
         .arg_group(ArgGroup::with_name("setver")
                 .add_all(vec!["major", "minor", "patch", "ver"]))
+        .after_help("\
+* If your .git directory is a child of your project directory (most common, such as\n\
+/myproject/.git) AND not in the current working directory (i.e you need to use --work-tree or\n\
+--git-dir) you only need to specify either the --work-tree (i.e. /myproject) OR --git-dir (i.e. \n\
+/myproject/.git), you don't need to use both.\n\n\
+
+** If using the --config to specify a clog configuration TOML file NOT in the current working\n\
+directory (meaning you need to use --work-tree or --git-dir) AND the TOML file is inside your\n\
+project directory (i.e. /myproject/.clog.toml) you do not need to use --work-tree or --git-dir.")
         .get_matches();
 
     let start_nsec = time::get_time().nsec;
 
     let clog = Clog::from_matches(&matches).unwrap_or_else(|e| { println!("{}",e); std::process::exit(1); });
 
-    let sm = SectionMap::from_commits(clog.get_log_entries());
+    let sm = SectionMap::from_commits(clog.get_commits());
 
     let mut contents = String::new();
 
@@ -59,8 +70,6 @@ fn main () {
     for (sec, secmap) in sm.sections {
         writer.write_section(&sec[..], &secmap.iter().collect::<BTreeMap<_,_>>()).ok().expect(&format!("failed to write {}", sec)[..]);
     }
-    // writer.write_section("Bug Fixes", &sections.fixes).ok().expect("failed to write bugfixes");
-    // writer.write_section("Features", &sections.features).ok().expect("failed to write features");
     writer.write(&contents[..]).ok().expect("failed to write contents");
 
     let end_nsec = time::get_time().nsec;
