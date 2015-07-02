@@ -24,7 +24,7 @@ There are two ways to use `clog`, via the command line or a library in your appl
 
 #### Command Line
 
-```
+```sh
 USAGE:
     clog [FLAGS] [OPTIONS]
 
