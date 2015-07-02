@@ -1,7 +1,7 @@
 use std::collections::{HashMap, BTreeMap};
 use std::convert::AsRef;
 use std::env;
-use std::fmt::Display;
+use std::fmt::{self, Display};
 use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};
@@ -17,7 +17,16 @@ use sectionmap::SectionMap;
 
 use CLOG_CONFIG_FILE;
 
+/// Determines the link style used in commit links. Defaults to `LinksStyle::Github`
+///
+/// # Example
+/// ```no_run
+/// # use clog::{LinkStyle, Clog};
+/// let mut clog = Clog::new().unwrap();
+/// clog.link_style(LinkStyle::Stash);
+/// ```
 arg_enum!{
+    #[derive(Debug)]
     pub enum LinkStyle {
         Github,
         Gitlab,
@@ -26,6 +35,15 @@ arg_enum!{
 }
 
 impl LinkStyle {
+    /// Gets a link to an issue in the specified format.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::{LinkStyle, Clog};
+    /// let link = LinkStyle::Github;
+    /// let issue = link.issue_link("141", "https://github.com/thoughtram/clog");
+    /// assert_eq!("[#141](https://github.com/thoughtram/clog/issues/141", issue);
+    /// ```
     pub fn issue_link<S: AsRef<str>>(&self, issue: S, repo: S) -> String {
         match repo.as_ref() {
             "" => format!("(#{})", issue.as_ref()),
@@ -39,6 +57,15 @@ impl LinkStyle {
         }
     }
 
+    /// Gets a link to an commit in the specified format.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::{LinkStyle, Clog};
+    /// let link = LinkStyle::Github;
+    /// let commit = link.commit_link("123abc891234567890abcdefabc4567898724", "https://github.com/thoughtram/clog");
+    /// assert_eq!("[#123abc89](https://github.com/thoughtram/clog/commit/123abc891234567890abcdefabc4567898724", commit);
+    /// ```
     pub fn commit_link<S: AsRef<str>>(&self, hash: S, repo: S) -> String {
         let short_hash = &hash.as_ref()[0..8];
         match repo.as_ref() {
@@ -54,22 +81,84 @@ impl LinkStyle {
     }
 }
 
+/// The base struct used to set options and interact with the library.
 pub struct Clog {
+    /// The grep search pattern used to find commits we are interested in (Defaults to: 
+    /// "^ft|^feat|^fx|^fix|^unk|BREAKING\'")
     pub grep: String,
+    /// The format of the commit output from `git log` (Defaults to: "%H%n%s%n%b%n==END==")
     pub format: String,
+    /// The repository used for the base of hyper-links
     pub repo: String,
+    /// The link style to used for commit and issue hyper-links
     pub link_style: LinkStyle,
+    /// The version tag for the release (Defaults to the short hash of the latest commit)
     pub version: String,
+    /// Whether or not this is a patch version update or not. Patch versions use a lower markdown
+    /// header (`###` instead of `##` for major and minor releases)
     pub patch_ver: bool,
+    /// The subtitle for the release
     pub subtitle: String,
+    /// Where to start looking for commits using a hash (or short hash)
     pub from: String,
+    /// Where to stop looking for commits using a hash (or short hash). (Defaults to `HEAD`)
     pub to: String,
+    /// The file to use as the changelog. (Defaults to `changelog.md`)
     pub changelog: String,
+    /// Maps out the sections and aliases used to trigger those sections. The keys are the section
+    /// name, and the values are an array of aliases.
     pub section_map: HashMap<String, Vec<String>>,
+    /// The git dir with all the meta-data (Typically the `.git` sub-directory of the project)
     pub git_dir: Option<PathBuf>,
+    /// The working directory of the git project (typically the project directory, or parent of the
+    /// `.git` directory)
     pub git_work_tree: Option<PathBuf>, 
 }
 
+impl fmt::Debug for Clog {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{{
+            grep: {:?}
+            format: {:?}
+            repo: {:?}
+            link_style: {:?}
+            version: {:?}
+            patch_ver: {:?}
+            subtitle: {:?}
+            from: {:?}
+            to: {:?}
+            changelog: {:?}
+            section_map: {:?}
+            git_dir: {:?}
+            git_work_tree: {:?}
+        }}",
+        self.grep,
+        self.format,
+        self.repo,
+        self.link_style,
+        self.version,
+        self.patch_ver,
+        self.subtitle,
+        self.from,
+        self.to,
+        self.changelog,
+        self.section_map,
+        self.git_dir,
+        self.git_work_tree
+        ) 
+    }
+}
+
+/// Convienience type for returning results of building a `Clog` struct
+///
+/// # Example
+/// ```no_run
+/// # use clog::Clog;
+/// let clog = Clog::new().unwrap_or_else(|e| {
+///     println!("Error initializing: {}", e);
+///     std::process::exit(1);
+/// });
+/// ```
 pub type ClogResult = Result<Clog, Box<Display>>;
 
 impl Clog {
@@ -105,11 +194,35 @@ impl Clog {
         }
     }
 
+    /// Creates a default `Clog` struct using the current working directory and searches for the
+    /// default `.clog.toml` configuration file.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let clog = Clog::new().unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// ```
     pub fn new() -> ClogResult {
         debugln!("Creating public default clog");
         Clog::from_file(CLOG_CONFIG_FILE)
     }
 
+    /// Creates a `Clog` struct using a specific git working directory and project directory as
+    /// well as a custom named TOML configuration file.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let clog = Clog::with_all("/myproject/.git",
+    ///                           "/myproject",
+    ///                           "/myproject/clog_conf.toml").unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// ```
     pub fn with_all<P: AsRef<Path>>(git_dir: P, work_tree: P, cfg_file: P) -> ClogResult {
         debugln!("Creating clog with \n\tgit_dir: {:?}\n\twork_tree: {:?}\n\tcfg_file: {:?}", 
             git_dir.as_ref(), 
@@ -120,6 +233,21 @@ impl Clog {
         clog.try_config_file(cfg_file.as_ref())   
     }
 
+    /// Creates a `Clog` struct using a specific git working directory OR project directory as
+    /// well as a custom named TOML configuration file.
+    ///
+    /// **NOTE:** If you specify a `.git` folder the parent will be used as the working tree, and
+    /// vice versa.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let clog = Clog::with_dir_and_file("/myproject",
+    ///                           "/myproject/clog_conf.toml").unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// ```
     pub fn with_dir_and_file<P: AsRef<Path>>(dir: P, cfg_file: P) -> ClogResult {
         debugln!("Creating clog with \n\tdir: {:?}\n\tcfg_file: {:?}", 
             dir.as_ref(), 
@@ -145,14 +273,44 @@ impl Clog {
             clog.git_dir = Some(gd);
         }
 
+        debugln!("Returning clog:\n{:?}", clog);
         Ok(clog)
     }
 
+    /// Creates a `Clog` struct using a specific git working directory OR project directory.
+    /// Searches for the default configuration TOML file `.clog.toml`
+    ///
+    /// **NOTE:** If you specify a `.git` folder the parent will be used as the working tree, and
+    /// vice versa.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let clog = Clog::with_dir("/myproject").unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// ```
     pub fn with_dir<P: AsRef<Path>>(dir: P) -> ClogResult {
+        debugln!("Creating clog with \n\tdir: {:?}", dir.as_ref());
         let clog = try!(Clog::_with_dir(dir));
         clog.try_config_file(Path::new(CLOG_CONFIG_FILE))
     }
 
+    /// Creates a `Clog` struct using a specific git working directory AND a project directory.
+    /// Searches for the default configuration TOML file `.clog.toml`
+    ///
+    /// **NOTE:** If you specify a `.git` folder the parent will be used as the working tree, and
+    /// vice versa.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let clog = Clog::with_dirs("/myproject", "/myproject/.git").unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// ```
     pub fn with_dirs<P: AsRef<Path>>(git_dir: P, work_tree: P) -> ClogResult {
         debugln!("Creating clog with \n\tgit_dir: {:?}\n\twork_tree: {:?}", 
             git_dir.as_ref(), 
@@ -163,6 +321,21 @@ impl Clog {
         clog.try_config_file(Path::new(CLOG_CONFIG_FILE))
     }
 
+    /// Creates a `Clog` struct a custom named TOML configuration file. Sets the parent directory
+    /// of the configuration file to the working tree and sibling `.git` directory as the git
+    /// directory.
+    ///
+    /// **NOTE:** If you specify a `.git` folder the parent will be used as the working tree, and
+    /// vice versa.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let clog = Clog::from_file("/myproject/clog_conf.toml").unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// ```
     pub fn from_file<P: AsRef<Path>>(file: P) -> ClogResult {
         debugln!("Creating clog with \n\tfile: {:?}", file.as_ref());
         // Determine if the cfg_file was relative or not
@@ -193,6 +366,7 @@ impl Clog {
         let mut toml_outfile = None;
 
         if let Ok(ref mut toml_f) = File::open(cfg_file) {
+            debugln!("Found file");
             let mut toml_s = String::with_capacity(100);
 
             if let Err(e) = toml_f.read_to_string(&mut toml_s) {
@@ -277,36 +451,62 @@ impl Clog {
             self.changelog = outfile;
         }
 
+        debugln!("Returning clog:\n{:?}", self);
         Ok(self)
     }
 
+    /// Creates a `Clog` struct from command line `clap::ArgMatches`
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// # use clog::Clog;
+    ///
+    /// let matches = // clap settings...
+    ///
+    /// let clog = Clog::from_matches(matches).unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// ```
     pub fn from_matches(matches: &ArgMatches) -> ClogResult {
+        debugln!("Creating clog from matches");
         let mut clog = if let Some(cfg) = matches.value_of("config") {
+        debugln!("User passed in config file: {:?}", cfg);
             if matches.is_present("workdir") && matches.is_present("gitdir") {
+                debugln!("User passed in both\n\tworking dir: {:?}\n\tgit dir: {:?}", matches.value_of("workdir"), matches.value_of("gitdir"));
                // use --config --work-tree --git-dir
                try!(Clog::with_all(matches.value_of("gitdir").unwrap(),
                               matches.value_of("workdir").unwrap(),
                               cfg))
             } else if let Some(dir) = matches.value_of("workdir") {
+                debugln!("User passed in working dir: {:?}", dir);
                // use --config --work-tree
                try!(Clog::with_dir_and_file(dir, cfg))
             } else if let Some(dir) = matches.value_of("gitdir") {
+                debugln!("User passed in git dir: {:?}", dir);
                // use --config --git-dir
                try!(Clog::with_dir_and_file(dir, cfg))
             } else {
+                debugln!("User only passed config");
                // use --config only
                try!(Clog::from_file(cfg))
             }
         } else {
+            debugln!("User didn't pass in a config");
             if matches.is_present("gitdir") && matches.is_present("workdir") {
                 let wdir = matches.value_of("workdir").unwrap();
                 let gdir = matches.value_of("gitdir").unwrap();
+                debugln!("User passed in both\n\tworking dir: {:?}\n\tgit dir: {:?}", wdir, gdir);
                 try!(Clog::with_dirs(gdir, wdir))
             } else if let Some(dir) = matches.value_of("gitdir") {
+                debugln!("User passed in git dir: {:?}", dir);
                 try!(Clog::with_dir(dir))
             } else if let Some(dir) = matches.value_of("workdir") {
+                debugln!("User passed in working dir: {:?}", dir);
                 try!(Clog::with_dir(dir))
             } else {
+                debugln!("Trying the default config file");
                 try!(Clog::from_file(CLOG_CONFIG_FILE))
             }
         };
@@ -369,68 +569,242 @@ impl Clog {
             clog.changelog = file.to_owned();
         }
 
+        debugln!("Returning clog:\n{:?}", clog);
         Ok(clog)
     }
 
+    /// Sets the grep search pattern for finding commits.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// 
+    /// clog.grep("BREAKS");
+    /// ```
     pub fn grep<S: Into<String>>(&mut self, g: S) -> &mut Clog {
         self.grep = g.into();
         self
     }
 
+    /// Sets the format for `git log` output
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// 
+    /// clog.format("%H%n%n==END==");
+    /// ```
     pub fn format<S: Into<String>>(&mut self, f: S) -> &mut Clog {
         self.format = f.into();
         self
     }
 
+    /// Sets the repository used for the base of hyper-links
+    ///
+    /// **NOTE:** Leave off the trailing `.git`
+    ///
+    /// **NOTE:** Anything set here will override anything in a configuration TOML file
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// 
+    /// clog.repository("https://github.com/thoughtram/clog");
+    /// ```
     pub fn repository<S: Into<String>>(&mut self, r: S) -> &mut Clog {
         self.repo = r.into();
         self
     }
 
+    /// Sets the link style to use for hyper-links
+    ///
+    /// **NOTE:** Anything set here will override anything in a configuration TOML file
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::{Clog, LinkStyle};
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// 
+    /// clog.link_style(LinkStyle::Stash);
+    /// ```
     pub fn link_style(&mut self, l: LinkStyle) -> &mut Clog {
         self.link_style = l;
         self
     }
 
+    /// Sets the version for the release
+    ///
+    /// **NOTE:** Anything set here will override anything in a configuration TOML file
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// 
+    /// clog.version("v0.2.1-beta3");
+    /// ```
     pub fn version<S: Into<String>>(&mut self, v: S) -> &mut Clog {
         self.version = v.into();
         self
     }
 
+    /// Sets the subtitle for the release
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// 
+    /// clog.subtitle("My Awesome Release Title");
+    /// ```
     pub fn subtitle<S: Into<String>>(&mut self, s: S) -> &mut Clog {
         self.subtitle = s.into();
         self
     }
 
+    /// Sets how far back to begin searching commits using a short hash or full hash
+    ///
+    /// **NOTE:** Anything set here will override anything in a configuration TOML file
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// 
+    /// clog.from("6d8183f");
+    /// ```
     pub fn from<S: Into<String>>(&mut self, f: S) -> &mut Clog {
         self.from = f.into();
         self
     }
 
+    /// Sets what point to stop searching for commits using a short hash or full hash (Defaults to
+    /// `HEAD`)
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// 
+    /// clog.to("123abc4d");
+    /// ```
     pub fn to<S: Into<String>>(&mut self, t: S) -> &mut Clog {
         self.to = t.into();
         self
     }
 
+    /// Sets the changelog file to output or prepend to (Defaults to `changelog.md`)
+    ///
+    /// **NOTE:** Anything set here will override anything in a configuration TOML file
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// 
+    /// clog.changelog("/myproject/my_changelog.md");
+    /// ```
     pub fn changelog<S: Into<String>>(&mut self, c: S) -> &mut Clog {
         self.changelog = c.into();
         self
     }
 
+    /// Sets the `git` metadata directory (typically `.git` child of your project working tree)
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// 
+    /// clog.git_dir("/myproject/.git");
+    /// ```
     pub fn git_dir<P: AsRef<Path>>(&mut self, d: P) -> &mut Clog {
         self.git_dir = Some(d.as_ref().to_path_buf());
         self
     }
+
+    /// Sets the `git` working tree directory (typically your project directory)
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// 
+    /// clog.git_work_tree("/myproject");
+    /// ```
     pub fn git_work_tree<P: AsRef<Path>>(&mut self, d: P) -> &mut Clog {
         self.git_work_tree = Some(d.as_ref().to_path_buf());
         self
     }
 
-    pub fn patch_version(&mut self, p: bool) -> &mut Clog {
+    /// Sets whether or not this is a patch release (defaults to `false`)
+    ///
+    /// **NOTE:** Setting this to true will cause the release subtitle to use a smaller markdown
+    /// heading
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// 
+    /// clog.patch_ver(true);
+    /// ```
+    pub fn patch_ver(&mut self, p: bool) -> &mut Clog {
         self.patch_ver = p;
         self
     }
 
+    /// Retrieves a `Vec<Commit>` of only commits we care about.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// 
+    /// let commits = clog.get_commits();
+    /// ```
     pub fn get_commits(&self) -> Commits {
         let range = match &self.from[..] {
             "" => "HEAD".to_owned(),
@@ -484,6 +858,19 @@ impl Clog {
             commit_type: commit_type
         }
     }
+
+    /// Retrieves the latest tag from the git directory
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// 
+    /// let tag = clog.get_latest_tag();
+    /// ```
     pub fn get_latest_tag(&self) -> String {
         let output = Command::new("git")
                 .arg(&self.get_git_dir()[..])
@@ -497,6 +884,18 @@ impl Clog {
         buf.trim_matches('\n').to_owned()
     }
 
+    /// Retrieves the latest tag version from the git directory
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// 
+    /// let tag_ver = clog.get_latest_tag_ver();
+    /// ```
     pub fn get_latest_tag_ver(&self) -> String {
         let output = Command::new("git")
                 .arg(&self.get_git_dir()[..])
@@ -509,6 +908,18 @@ impl Clog {
         String::from_utf8_lossy(&output.stdout).into_owned()
     }
 
+    /// Retrieves the hash of the most recent commit from the git directory (i.e. HEAD)
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// 
+    /// let head_hash = clog.get_last_commit();
+    /// ```
     pub fn get_last_commit(&self) -> String {
         let output = Command::new("git")
                 .arg(&self.get_git_dir()[..])
@@ -553,10 +964,36 @@ impl Clog {
         }
     }
 
+    /// Retrieves the section title for a given alias
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// 
+    /// let section = clog.section_for("feat");
+    /// assert_eq!("Features", section);
+    /// ```
     pub fn section_for(&self, alias: &str) -> &String {
         self.section_map.iter().filter(|&(_, v)| v.iter().any(|s| s == alias)).map(|(k, _)| k).next().unwrap_or(self.section_map.keys().filter(|&k| *k == "Unknown".to_owned()).next().unwrap())
     }
 
+    /// Writes the changelog to a specified file, and prepends new commits if file exists, or
+    /// creates the file if it doesn't
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// 
+    /// clog.write_changelog_to("/myproject/new_changelog.md");
+    /// ```
     pub fn write_changelog_to<P: AsRef<Path>>(&self, cl: P) {
         let sm = SectionMap::from_commits(self.get_commits());
 
@@ -574,6 +1011,20 @@ impl Clog {
         writer.write(&contents[..]).ok().expect("failed to write contents");
     }
 
+    /// Writes the changelog to the default location and file or wherever was specified by the TOML
+    /// or configuration options. `Clog` prepends new commits if file exists, or
+    /// creates the file if it doesn't.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// 
+    /// clog.write_changelog();
+    /// ```
     pub fn write_changelog(&self) {
         self.write_changelog_to(&self.changelog[..]);
     }

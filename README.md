@@ -20,29 +20,45 @@ The way this works, is every time you make a commit, you ensure your commit subj
 
 ### Usage
 
+There are two ways to use `clog`, via the command line or a library in your applicaitons.
+
+#### Command Line
+
 ```
 USAGE:
-	clog [FLAGS] [OPTIONS]
+    clog [FLAGS] [OPTIONS]
 
 FLAGS:
-        --from-latest-tag    use latest tag as start (instead of --from)
+    -c, --config             The Clog Configuration TOML file to use (Defaults to '.clog.toml')**
+    -F, --from-latest-tag    use latest tag as start (instead of --from)
     -h, --help               Prints help information
-        --major              Increment major version by one (Sets minor and patch to 0)
-        --minor              Increment minor version by one (Sets patch to 0)
-        --patch              Increment patch version by one
-    -v, --version            Prints version information
+    -M, --major              Increment major version by one (Sets minor and patch to 0)
+    -m, --minor              Increment minor version by one (Sets patch to 0)
+    -p, --patch              Increment patch version by one
+    -V, --version            Prints version information
 
 OPTIONS:
-        --from <from>                e.g. 12a8546
+    -f, --from <from>                e.g. 12a8546
+    -g, --git-dir <gitdir>           Local .git directory (defaults to current dir + '.git')*
     -o, --outfile <outfile>          Where to write the changelog (Defaults to 'changelog.md')
-    -r, --repository <repository>    e.g. https://github.com/thoughtram/clog
-        --link-style <style>         The commit link style to use, defaults to github [values: Github, Gitlab, Stash]
-        --subtitle <subtitle>        e.g. crazy-release-title
-        --to <to>                    e.g. 8057684 (Defaults to HEAD when omitted)
+    -r, --repository <repo>          Repo used for link generation (without the .git, e.g. https://github.com/thoughtram/clog)
+    -l, --link-style <style>         The style of repository link to generate (Defaults to github) [values: Github, Gitlab, Stash]
+    -s, --subtitle <subtitle>        e.g. "Crazy Release Title"
+    -t, --to <to>                    e.g. 8057684 (Defaults to HEAD when omitted)
         --setversion <ver>           e.g. 1.0.1
+    -w, --work-tree <workdir>        Local working tree of the git project (defaults to current dir)*
+
+* If your .git directory is a child of your project directory (most common, such as
+/myproject/.git) AND not in the current working directory (i.e you need to use --work-tree or
+--git-dir) you only need to specify either the --work-tree (i.e. /myproject) OR --git-dir (i.e. 
+/myproject/.git), you don't need to use both.
+
+** If using the --config to specify a clog configuration TOML file NOT in the current working
+directory (meaning you need to use --work-tree or --git-dir) AND the TOML file is inside your
+project directory (i.e. /myproject/.clog.toml) you do not need to use --work-tree or --git-dir.
 ```
 
-### Try it!
+##### Try it!
 
 1. Clone the repo `git clone https://github.com/thoughtram/clog && cd clog`
 
@@ -51,6 +67,55 @@ OPTIONS:
 3. Delete the old changelog file `rm changelog.md`
 
 3. Run clog `./target/release/clog -r https://github.com/thoughtram/clog --setversion 0.1.0 --subtitle crazy-dog --from 6d8183f`
+
+#### As a Library
+
+See the documentation for information on using `clog` in your applications.
+
+##### Try it!
+
+ 1. Clone the `clog` repo so that you have something to search through (Because `clog` uses 
+    specially formatted commit messages)
+```
+$ git clone https://github.com/thoughtram/clog ~/clog
+```
+
+ 2. Add `clog` as a dependency in your `Cargo.toml` 
+
+```toml
+[dependencies]
+clog = "*"
+```
+
+ 3. Use the following in your `src/main.rs`
+
+```rust
+extern crate clog;
+
+use clog::Clog;
+
+fn main() {
+    // Create the struct
+    let mut clog = Clog::with_dir("~/clog").unwrap_or_else(|e| { 
+        println!("{}",e); 
+        std::process::exit(1); 
+    });
+
+    // Set some options
+    clog.repository("https://github.com/thoughtram/clog")
+        .subtitle("Crazy Dog")
+        .from("6d8183f")
+        .version("0.1.0");
+
+    // Write the changelog to the current working directory
+    //
+    // Alternatively we could have used .write_changelog_to("/somedir/some_file.md")
+    clog.write_changelog();
+}
+```
+
+ 4. Compile and run `$ cargo build --release && ./target/release/bin_name
+ 5. View the output in your favorite markdown viewer! `$ vim changelog.md`
 
 ### Default Options
 
