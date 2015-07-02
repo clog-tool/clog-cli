@@ -1,6 +1,6 @@
 [root]
 name = "clog"
-version = "0.7.0"
+version = "0.8.1"
 dependencies = [
  "clap 1.0.0-beta (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.1.38 (registry+https://github.com/rust-lang/crates.io-index)",
