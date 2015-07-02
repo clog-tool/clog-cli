@@ -28,7 +28,7 @@ fn main () {
                           -s, --subtitle=[subtitle] 'e.g. \"Crazy Release Title\"'
                           -t, --to=[to]             'e.g. 8057684 (Defaults to HEAD when omitted)'
                           -o, --outfile=[outfile]   'Where to write the changelog (Defaults to \'changelog.md\')'
-                          -c, --config              'The Clog Configuration TOML file to use (Defaults to \'.clog.toml\')**'
+                          -c, --config=[config]     'The Clog Configuration TOML file to use (Defaults to \'.clog.toml\')**'
                           --setversion=[ver]        'e.g. 1.0.1'")
         // Because --from-latest-tag can't be used with --from, we add it seperately so we can
         // specify a .conflicts_with()
