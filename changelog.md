@@ -1,3 +1,13 @@
+<a name="0.8.1"></a>
+## 0.8.1 (2015-07-02)
+
+
+#### Bug Fixes
+
+* **Cargo.toml**  patch up version number ([017066fa](https://github.com/thoughtram/clog/commit/017066fa5fd63d33b885cacfc6500b67edb68d2d))
+
+
+
 <a name="0.8.0"></a>
 ## 0.8.0 (2015-07-02)
 
