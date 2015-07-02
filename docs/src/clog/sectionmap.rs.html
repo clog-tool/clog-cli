@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="Source to the Rust file `src/sectionmap.rs`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang">
+
+    <title>sectionmap.rs.html -- source</title>
+
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <section class="sidebar">
+        
+        
+    </section>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content source"><pre class="line-numbers"><span id="1"> 1</span>
+<span id="2"> 2</span>
+<span id="3"> 3</span>
+<span id="4"> 4</span>
+<span id="5"> 5</span>
+<span id="6"> 6</span>
+<span id="7"> 7</span>
+<span id="8"> 8</span>
+<span id="9"> 9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+</pre><pre class='rust '>
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>collections</span>::<span class='ident'>HashMap</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>collections</span>::<span class='ident'>BTreeMap</span>;
+
+<span class='kw'>use</span> <span class='ident'>git</span>::<span class='ident'>Commit</span>;
+
+<span class='doccomment'>/// A convenience type for a map of components to commits </span>
+<span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>ComponentMap</span> <span class='op'>=</span> <span class='ident'>BTreeMap</span><span class='op'>&lt;</span><span class='ident'>String</span>, <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>Commit</span><span class='op'>&gt;&gt;</span>;
+
+<span class='doccomment'>/// A struct which holds sections to and components-&gt;commits map</span>
+<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>SectionMap</span> {
+    <span class='kw'>pub</span> <span class='ident'>sections</span>: <span class='ident'>HashMap</span><span class='op'>&lt;</span><span class='ident'>String</span>, <span class='ident'>ComponentMap</span><span class='op'>&gt;</span>
+}
+
+<span class='kw'>impl</span> <span class='ident'>SectionMap</span> {
+    <span class='doccomment'>/// Creates a section map from a vector of commits, which we can then iterate through and write</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// # Example</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// ```no_run</span>
+    <span class='doccomment'>/// # use std::fs::File;</span>
+    <span class='doccomment'>/// # use std::io::Read;</span>
+    <span class='doccomment'>/// # use std::path::Path;</span>
+    <span class='doccomment'>/// # use std::collections::BTreeMap;</span>
+    <span class='doccomment'>/// # use clog::{Clog, LogWriter, SectionMap};</span>
+    <span class='doccomment'>/// let clog = Clog::new().unwrap_or_else(|e| { </span>
+    <span class='doccomment'>///     println!(&quot;Error initializing: {}&quot;, e);</span>
+    <span class='doccomment'>///     std::process::exit(1);</span>
+    <span class='doccomment'>/// });</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// // Get the commits we&#39;re interested in and create the section map...</span>
+    <span class='doccomment'>/// let sm = SectionMap::from_commits(clog.get_commits());</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// // Open and prepend, or create the changelog file...</span>
+    <span class='doccomment'>/// let mut contents = String::new();</span>
+    <span class='doccomment'>/// File::open(&amp;Path::new(&amp;clog.changelog[..])).map(|mut f| f.read_to_string(&amp;mut contents).ok()).ok();</span>
+    <span class='doccomment'>/// let mut file = File::create(&amp;Path::new(&amp;clog.changelog[..])).ok().unwrap();</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// // Write the header...</span>
+    <span class='doccomment'>/// let mut writer = LogWriter::new(&amp;mut file, &amp;clog);</span>
+    <span class='doccomment'>/// writer.write_header().ok().expect(&quot;failed to write header&quot;);</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// // Write the sections</span>
+    <span class='doccomment'>/// for (sec, secmap) in sm.sections {</span>
+    <span class='doccomment'>///    writer.write_section(&amp;sec[..], &amp;secmap.iter()</span>
+    <span class='doccomment'>///                                          .collect::&lt;BTreeMap&lt;_,_&gt;&gt;())</span>
+    <span class='doccomment'>///          .ok()</span>
+    <span class='doccomment'>///          .expect(&amp;format!(&quot;failed to write {}&quot;, sec)[..]);</span>
+    <span class='doccomment'>/// }</span>
+    <span class='doccomment'>/// writer.write(&amp;contents[..]).ok().expect(&quot;failed to write contents&quot;);</span>
+    <span class='doccomment'>/// ```</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>from_commits</span>(<span class='ident'>commits</span>: <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>Commit</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> <span class='ident'>SectionMap</span> {
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>sm</span> <span class='op'>=</span> <span class='ident'>SectionMap</span> {
+            <span class='ident'>sections</span>: <span class='ident'>HashMap</span>::<span class='ident'>new</span>()
+        };
+
+        <span class='ident'>commits</span>.<span class='ident'>into_iter</span>().<span class='ident'>map</span>(<span class='op'>|</span><span class='ident'>entry</span><span class='op'>|</span> {
+            <span class='kw'>let</span> <span class='ident'>comp_map</span> <span class='op'>=</span> <span class='ident'>sm</span>.<span class='ident'>sections</span>.<span class='ident'>entry</span>(<span class='ident'>entry</span>.<span class='ident'>commit_type</span>.<span class='ident'>clone</span>()).<span class='ident'>or_insert</span>(<span class='ident'>BTreeMap</span>::<span class='ident'>new</span>());
+            <span class='kw'>let</span> <span class='ident'>sec_map</span> <span class='op'>=</span> <span class='ident'>comp_map</span>.<span class='ident'>entry</span>(<span class='ident'>entry</span>.<span class='ident'>component</span>.<span class='ident'>clone</span>()).<span class='ident'>or_insert</span>(<span class='macro'>vec</span><span class='macro'>!</span>[]);
+            <span class='ident'>sec_map</span>.<span class='ident'>push</span>(<span class='ident'>entry</span>);
+        }).<span class='ident'>collect</span>::<span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span>_<span class='op'>&gt;&gt;</span>();
+
+        <span class='ident'>sm</span>
+    }
+}
+</pre>
+</section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <div id="help" class="hidden">
+        <div class="shortcuts">
+            <h1>Keyboard shortcuts</h1>
+            <dl>
+                <dt>?</dt>
+                <dd>Show this help dialog</dd>
+                <dt>S</dt>
+                <dd>Focus the search field</dd>
+                <dt>&larrb;</dt>
+                <dd>Move up in search results</dd>
+                <dt>&rarrb;</dt>
+                <dd>Move down in search results</dd>
+                <dt>&#9166;</dt>
+                <dd>Go to active search result</dd>
+            </dl>
+        </div>
+        <div class="infos">
+            <h1>Search tricks</h1>
+            <p>
+                Prefix searches with a type followed by a colon (e.g.
+                <code>fn:</code>) to restrict the search to a given type.
+            </p>
+            <p>
+                Accepted types are: <code>fn</code>, <code>mod</code>,
+                <code>struct</code>, <code>enum</code>,
+                <code>trait</code>, <code>typedef</code> (or
+                <code>tdef</code>).
+            </p>
+            <p>
+                Search functions by type signature (e.g.
+                <code>vec -> usize</code>)
+            </p>
+        </div>
+    </div>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "clog";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    
+    <script async src="../../search-index.js"></script>
+</body>
+</html>

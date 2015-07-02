@@ -9,6 +9,10 @@ version = "0.7.0"
 authors = ["Christoph Burgdorf <christoph.burgdorf@bvsn.org>"]
 description = "A conventional changelog for the rest of us"
 
+[[bin]]
+doc = false
+name = "clog"
+
 [dependencies]
 regex = "*"
 semver = "*"

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["SectionMap","A struct which holds sections to and components->commits map"]]});

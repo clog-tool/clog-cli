@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["LogWriter","Writes commits to a specified `Write` object"]]});
