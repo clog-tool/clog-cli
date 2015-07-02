@@ -29,7 +29,6 @@ USAGE:
     clog [FLAGS] [OPTIONS]
 
 FLAGS:
-    -c, --config             The Clog Configuration TOML file to use (Defaults to '.clog.toml')**
     -F, --from-latest-tag    use latest tag as start (instead of --from)
     -h, --help               Prints help information
     -M, --major              Increment major version by one (Sets minor and patch to 0)
@@ -38,6 +37,7 @@ FLAGS:
     -V, --version            Prints version information
 
 OPTIONS:
+    -c, --config <config>            The Clog Configuration TOML file to use (Defaults to '.clog.toml')**
     -f, --from <from>                e.g. 12a8546
     -g, --git-dir <gitdir>           Local .git directory (defaults to current dir + '.git')*
     -o, --outfile <outfile>          Where to write the changelog (Defaults to 'changelog.md')
