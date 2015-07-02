@@ -1,3 +1,21 @@
+<a name="0.8.0"></a>
+## 0.8.0 (2015-07-02)
+
+
+#### Features
+
+*   adds automatic changelog writing for lib ([a790b703](https://github.com/thoughtram/clog/commit/a790b7034119f49ddff3464b2a3fb81ac20c6744))
+*   improves non-cli lib use and configuration ([c0e969c3](https://github.com/thoughtram/clog/commit/c0e969c335bebbe1aa79269c5e05680b09f77fcf))
+*   split bin from lib ([218f1d04](https://github.com/thoughtram/clog/commit/218f1d047309a66c3cd132e762df3b2b9f22a5f7))
+
+#### Bug Fixes
+
+*   fixes bug when using current working dir and default config ([f90f0f0e](https://github.com/thoughtram/clog/commit/f90f0f0ebf567f59469f64186440231cf84c130e))
+*   fixes bug with non-cli configuration ([731c71d3](https://github.com/thoughtram/clog/commit/731c71d39aab95cc8667e8a42218f821425c3d88))
+* **Rust Nightly**  fixes to compile on nightly again ([d2f9afe4](https://github.com/thoughtram/clog/commit/d2f9afe41734ee3a62e645fc3510c1d9c4a5e72b))
+
+
+
 <a name="0.7.0"></a>
 ## 0.7.0 (2015-05-29)
 
