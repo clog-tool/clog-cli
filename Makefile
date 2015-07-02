@@ -12,9 +12,9 @@ doc:
 	cp src/lib.rs code.bak
 	cat README.md | sed -e 's/^/\/\/! /g' > readme.bak
 	sed -i '/\/\/ DOCS/r readme.bak' src/lib.rs
-	sed -i '/```rust/```ignore/r readme.bak' src/lib.rs
-	sed -i '/```toml/```ignore/r readme.bak' src/lib.rs
-	sed -i '/```sh/```ignore/r readme.bak' src/lib.rs
+	sed -e "s/\`rust/\`ignore/g" src/lib.rs
+	sed -e "s/\`toml/\`ignore/g" src/lib.rs
+	sed -e "s/\`sh/\`ignore/g" src/lib.rs
 	rm -rf docs/*
 	(cargo doc --no-deps && make clean) || (make clean && false)
 
