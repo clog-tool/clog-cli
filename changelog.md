@@ -1,3 +1,13 @@
+<a name="0.8.2"></a>
+### 0.8.2 (2015-07-02)
+
+
+#### Bug Fixes
+
+* **CLI**  fixes a bug when passing config at command line ([bee2505c](https://github.com/thoughtram/clog/commit/bee2505c20469b48916432c913e15397ef4bb62e))
+
+
+
 <a name="0.8.1"></a>
 ## 0.8.1 (2015-07-02)
 
