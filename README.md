@@ -9,7 +9,7 @@ A [conventional][convention] changelog for the rest of us
 
 [convention]: https://github.com/ajoslin/conventional-changelog/blob/a5505865ff3dd710cf757f50530e73ef0ca641da/conventions/angular.md
 
-### About
+## About
 
 `clog` creates a changelog automatically from your local git metadata. See the `clog`s [changelog.md](https://github.com/thoughtram/clog/blob/master/changelog.md) for an example.
 
@@ -18,11 +18,66 @@ The way this works, is every time you make a commit, you ensure your commit subj
 *NOTE:* `clog` also supports empty components by making commit messages such as `alias: message` or `alias(): message` (i.e. without the component)
 
 
-### Usage
+## Usage
 
-There are two ways to use `clog`, via the command line or a library in your applicaitons.
+There are two ways to use `clog`, as a binary via the command line or as a library in your applicaitons.
 
-#### Command Line
+### Binary (Command Line)
+
+In order to use `clog` via the command line you must first obtain a binary by either compiling it yourself, or downlading and installing one of the precompiled binaries.
+
+#### Compiling
+
+Follow these instructions to compile `clog`, then skip down to Installation.
+
+ 1. Ensure you have current version of `cargo` and [Rust](https://www.rust-lang.org) installed
+ 2. Clone the project `$ git clone https://github.com/thoughtram/clog && cd clog`
+ 3. Build the project `$ cargo build --release`
+ 4. Once complete, the binary will be located at `target/release/clog`
+
+#### Using a Precompiled Binary
+
+There are several precompiled binaries readily availbe. Browse to http://wod.twentyfives.net/bin/clog/ and download the latest binary for your particular OS. Once you download and extract the tar file (or zip for Windows), the binary will be located at `bin/clog`
+
+#### Installation
+
+Once you have downloaded, or compiled, `clog` you simply need to place the binary somewhere in your `$PATH`. If you are not familiar with `$PATH` read-on; otherwise skip down to Using clog.
+
+##### Arch Linux
+
+You can use `clog-bin` from the AUR, or follow the instructions for Linux / OS X
+
+##### Linux / OS X
+
+You have two options, place `clog` into a directory that is already located in your `$PATH` variable (To see which directories those are, open a terminal and type `echo "${PATH//:/\n}"`, the quotation marks are important), or you can add a custom directory to your `$PATH`
+
+**Option 1**
+If you have write permission to a directory listed in your `$PATH` or you have root permission (or via `sudo`), simply copy the `clog` to that directory `# sudo cp clog /usr/local/bin`
+
+**Option 2**
+If you do not have root, `sudo`, or write permission to any directory already in `$PATH` you can create a directory inside your home directory, and add that. Many people use `$HOME/.bin` to keep it hidden (and not clutter your home directory), or `$HOME/bin` if you want it to be always visible. Here is an example to make the directory, add it to `$PATH`, and copy `clog` there.
+
+Simply change `bin` to whatever you'd like to name the directory, and `.bashrc` to whatever your shell startup file is (usually `.bashrc`, `.bash_profile`, or `.zshrc`)
+
+```sh
+$ mkdir ~/bin
+$ echo "export PATH=$PATH:$HOME/bin" >> ~/.bashrc
+$ cp clog ~/bin
+$ source ~/.bashrc
+```
+
+##### Windows
+
+On Windows 7/8 you can add directory to the `PATH` variable by opening a command line as an administrator and running
+
+```
+C:\> setx path "%path%;C:\path\to\clog\binary"
+```
+Otherwise, ensure you have the `clog` binary in the directory which you operating in the command line from, because Windows automatically adds your current directory to PATH (i.e. if you open a command line to `C:\my_project\` to use `clog` ensure `clog.exe` is inside that directory as well).
+
+#### Using clog from the Command Line
+
+`clog` works by reading your `git` metadata and specially crafted commit messages and subjects to create a changelog. `clog` has the following options availble.
 
 ```sh
 USAGE:
@@ -58,24 +113,30 @@ directory (meaning you need to use --work-tree or --git-dir) AND the TOML file i
 project directory (i.e. /myproject/.clog.toml) you do not need to use --work-tree or --git-dir.
 ```
 
-##### Try it!
+#### Try it!
+
+In order to see it in action, you'll need a repository that already has some of those specially crafted commit messages in it's history. For this, we'll use the `clog` repository itself.
 
 1. Clone the repo `git clone https://github.com/thoughtram/clog && cd clog`
 
-2. Build clog `cargo build --release`
+2. Ensure you already `clog` binary from any of the steps above
 
-3. Delete the old changelog file `rm changelog.md`
+3. Delete the old changelog file `rm changelog.md` (so that you can see what a fresh one looks like)
 
-3. Run clog `./target/release/clog -r https://github.com/thoughtram/clog --setversion 0.1.0 --subtitle crazy-dog --from 6d8183f`
+4. Run clog `clog -r https://github.com/thoughtram/clog --setversion 0.1.0 --subtitle "Crazy Dog" --from 6d8183f`
 
-#### As a Library
+5. Open `changelog.md` in your favorite markdown viewer
+
+### As a Library
 
 See the documentation for information on using `clog` in your applications.
 
-##### Try it!
+#### Try it!
 
- 1. Clone the `clog` repo so that you have something to search through (Because `clog` uses 
-    specially formatted commit messages)
+In order to see it in action, you'll need a repository that already has some of those specially crafted commit messages in it's history. For this, we'll use the `clog` repository itself.
+
+ 1. Clone the `clog` repository (we will clone to our home directory to make things simple, feel free to change it)
+
 ```
 $ git clone https://github.com/thoughtram/clog ~/clog
 ```
@@ -141,7 +202,7 @@ Now you can update your `MyChangelog.md` with `clog --patch` (assuming you want 
 
 *Note:* Any options you specify at the command line will override options set in your `.clog.toml`
 
-#### Custom Sections
+### Custom Sections
 
 By default, `clog` will display two sections in your changelog, `Features` and `Bug Fixes`. You can add additional sections by using a `.clog.toml` file. To add more sections, simply add a `[sections]` table, along with the section name and aliases you'd like to use in your commit messages:
 
