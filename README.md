@@ -215,6 +215,10 @@ Now if you make a commit message such as `mysec(Component): some message` or `ms
 
 *NOTE:* Sections with spaces are suppported, such as `"My Special Section" = ["ms", "mysec"]`
 
+## Companion Projects
+
+- [Commitizen](http://commitizen.github.io/cz-cli/) - A command line tool that helps you writing better commit messages.
+
 ## LICENSE
 
 clog is licensed under the MIT Open Source license. For more information, see the LICENSE file in this repository.
