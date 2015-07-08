@@ -8,6 +8,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use clap::ArgMatches;
+use regex::Regex;
 use toml::{Value, Parser};
 use semver;
 
@@ -113,6 +114,10 @@ pub struct Clog {
     /// The working directory of the git project (typically the project directory, or parent of the
     /// `.git` directory)
     pub git_work_tree: Option<PathBuf>, 
+    /// The regex used to get components, aliases, and messages
+    pub regex: Regex,
+    /// The regex used to get closes issue links
+    pub closes_regex: Regex, 
 }
 
 impl fmt::Debug for Clog {
@@ -131,6 +136,8 @@ impl fmt::Debug for Clog {
             section_map: {:?}
             git_dir: {:?}
             git_work_tree: {:?}
+            regex: {:?}
+            closes_regex: {:?}
         }}",
         self.grep,
         self.format,
@@ -144,7 +151,9 @@ impl fmt::Debug for Clog {
         self.changelog,
         self.section_map,
         self.git_dir,
-        self.git_work_tree
+        self.git_work_tree,
+        self.regex,
+        self.closes_regex
         ) 
     }
 }
@@ -191,6 +200,8 @@ impl Clog {
             section_map: sections,
             git_dir: None,
             git_work_tree: None,
+            regex: regex!(r"^([^:\(]+?)(?:\(([^:\)]*?)?\))?:(.*)"),
+            closes_regex: regex!(r"(?:Closes|Fixes|Resolves)\s((?:#(\d+)(?:,\s)?)+)")
         }
     }
 
@@ -833,9 +844,9 @@ impl Clog {
 
         let hash = lines.next().unwrap_or("").to_owned();
 
-        let commit_pattern = regex!(r"^(.*?)(?:\((.*)?\))?:(.*)");
+
         let (subject, component, commit_type) =
-            match lines.next().and_then(|s| commit_pattern.captures(s)) {
+            match lines.next().and_then(|s| self.regex.captures(s)) {
                 Some(caps) => {
                     let commit_type = self.section_for(caps.at(1).unwrap_or("")).to_owned();
                     let component = caps.at(2);
@@ -844,8 +855,7 @@ impl Clog {
                },
                None => (Some(""), Some(""), self.section_for("unk").clone())
             };
-        let closes_pattern = regex!(r"(?:Closes|Fixes|Resolves)\s((?:#(\d+)(?:,\s)?)+)");
-        let closes = lines.filter_map(|line| closes_pattern.captures(line))
+        let closes = lines.filter_map(|line| self.closes_regex.captures(line))
                           .map(|caps| caps.at(2).unwrap_or("").to_owned())
                           .collect();
 
