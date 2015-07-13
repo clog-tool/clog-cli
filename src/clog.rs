@@ -1,9 +1,9 @@
 use std::collections::{HashMap, BTreeMap};
 use std::convert::AsRef;
 use std::env;
-use std::fmt::{self, Display};
+use std::fmt;
 use std::fs::File;
-use std::io::Read;
+use std::io::{stdout, BufWriter, Read};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -13,10 +13,25 @@ use toml::{Value, Parser};
 use semver;
 
 use git::{Commits, Commit};
-use log_writer::LogWriter;
+use writer::{Writer, WriterResult, Markdown};
 use sectionmap::SectionMap;
+use error::Error;
 
 use CLOG_CONFIG_FILE;
+
+/// Convienience type for returning results of building a `Clog` struct
+///
+/// # Example
+///
+/// ```no_run
+/// # use clog::Clog;
+/// let clog = Clog::new().unwrap_or_else(|e| {
+///     // Prints the error and exits appropriately
+///     e.exit();
+/// });
+/// ```
+pub type BuilderResult = Result<Clog, Error>;
+
 
 /// Determines the link style used in commit links. Defaults to `LinksStyle::Github`
 ///
@@ -105,7 +120,7 @@ pub struct Clog {
     /// Where to stop looking for commits using a hash (or short hash). (Defaults to `HEAD`)
     pub to: String,
     /// The file to use as the changelog. (Defaults to `changelog.md`)
-    pub changelog: String,
+    pub changelog: Option<String>,
     /// Maps out the sections and aliases used to trigger those sections. The keys are the section
     /// name, and the values are an array of aliases.
     pub section_map: HashMap<String, Vec<String>>,
@@ -158,17 +173,6 @@ impl fmt::Debug for Clog {
     }
 }
 
-/// Convienience type for returning results of building a `Clog` struct
-///
-/// # Example
-/// ```no_run
-/// # use clog::Clog;
-/// let clog = Clog::new().unwrap_or_else(|e| {
-///     println!("Error initializing: {}", e);
-///     std::process::exit(1);
-/// });
-/// ```
-pub type ClogResult = Result<Clog, Box<Display>>;
 
 impl Clog {
     fn _new() -> Clog {
@@ -196,7 +200,7 @@ impl Clog {
             subtitle: "".to_owned(),
             from: "".to_owned(),
             to: "HEAD".to_owned(),
-            changelog: "changelog.md".to_owned(),
+            changelog: None,
             section_map: sections,
             git_dir: None,
             git_work_tree: None,
@@ -216,7 +220,7 @@ impl Clog {
     ///     std::process::exit(1);
     /// });
     /// ```
-    pub fn new() -> ClogResult {
+    pub fn new() -> BuilderResult {
         debugln!("Creating public default clog");
         Clog::from_file(CLOG_CONFIG_FILE)
     }
@@ -234,7 +238,7 @@ impl Clog {
     ///     std::process::exit(1);
     /// });
     /// ```
-    pub fn with_all<P: AsRef<Path>>(git_dir: P, work_tree: P, cfg_file: P) -> ClogResult {
+    pub fn with_all<P: AsRef<Path>>(git_dir: P, work_tree: P, cfg_file: P) -> BuilderResult {
         debugln!("Creating clog with \n\tgit_dir: {:?}\n\twork_tree: {:?}\n\tcfg_file: {:?}", 
             git_dir.as_ref(), 
             work_tree.as_ref(), 
@@ -259,7 +263,7 @@ impl Clog {
     ///     std::process::exit(1);
     /// });
     /// ```
-    pub fn with_dir_and_file<P: AsRef<Path>>(dir: P, cfg_file: P) -> ClogResult {
+    pub fn with_dir_and_file<P: AsRef<Path>>(dir: P, cfg_file: P) -> BuilderResult {
         debugln!("Creating clog with \n\tdir: {:?}\n\tcfg_file: {:?}", 
             dir.as_ref(), 
             cfg_file.as_ref());
@@ -267,7 +271,7 @@ impl Clog {
         clog.try_config_file(cfg_file.as_ref())   
     }
 
-    fn _with_dir<P: AsRef<Path>>(dir: P) -> ClogResult {
+    fn _with_dir<P: AsRef<Path>>(dir: P) -> BuilderResult {
         debugln!("Creating private clog with \n\tdir: {:?}", dir.as_ref());
         let mut clog = Clog::_new();
         if dir.as_ref().ends_with(".git") {
@@ -302,7 +306,7 @@ impl Clog {
     ///     std::process::exit(1);
     /// });
     /// ```
-    pub fn with_dir<P: AsRef<Path>>(dir: P) -> ClogResult {
+    pub fn with_dir<P: AsRef<Path>>(dir: P) -> BuilderResult {
         debugln!("Creating clog with \n\tdir: {:?}", dir.as_ref());
         let clog = try!(Clog::_with_dir(dir));
         clog.try_config_file(Path::new(CLOG_CONFIG_FILE))
@@ -322,7 +326,7 @@ impl Clog {
     ///     std::process::exit(1);
     /// });
     /// ```
-    pub fn with_dirs<P: AsRef<Path>>(git_dir: P, work_tree: P) -> ClogResult {
+    pub fn with_dirs<P: AsRef<Path>>(git_dir: P, work_tree: P) -> BuilderResult {
         debugln!("Creating clog with \n\tgit_dir: {:?}\n\twork_tree: {:?}", 
             git_dir.as_ref(), 
             work_tree.as_ref());
@@ -347,14 +351,14 @@ impl Clog {
     ///     std::process::exit(1);
     /// });
     /// ```
-    pub fn from_file<P: AsRef<Path>>(file: P) -> ClogResult {
+    pub fn from_file<P: AsRef<Path>>(file: P) -> BuilderResult {
         debugln!("Creating clog with \n\tfile: {:?}", file.as_ref());
         // Determine if the cfg_file was relative or not
         let cfg_file = if file.as_ref().is_relative() {
             debugln!("file is relative");
             let cwd = match env::current_dir() {
                 Ok(d)  => d,
-                Err(e) => return Err(Box::new(e)),
+                Err(..) => return Err(Error::CurrentDirErr),
             };
             Path::new(&cwd).join(file.as_ref())
         } else {
@@ -368,7 +372,7 @@ impl Clog {
         Clog::with_dir_and_file(dir, cfg_file)
     }
 
-    fn try_config_file(mut self, cfg_file: &Path) -> ClogResult {
+    fn try_config_file(mut self, cfg_file: &Path) -> BuilderResult {
         debugln!("Trying to use config file: {:?}", cfg_file);
         let mut toml_from_latest = None;
         let mut toml_repo = None;
@@ -380,8 +384,8 @@ impl Clog {
             debugln!("Found file");
             let mut toml_s = String::with_capacity(100);
 
-            if let Err(e) = toml_f.read_to_string(&mut toml_s) {
-                return Err(Box::new(e))
+            if let Err(..) = toml_f.read_to_string(&mut toml_s) {
+                return Err(Error::TomlReadErr);
             }
 
             toml_s.shrink_to_fit();
@@ -391,14 +395,14 @@ impl Clog {
             let toml_table = match toml.parse() {
                 Some(table) => table,
                 None        => {
-                    return Err(Box::new(format!("Error parsing file: {}\n\nPlease check the format or specify the options manually", cfg_file.to_str().unwrap_or("UNABLE TO DISPLAY"))))
+                    return Err(Error::ConfigParseErr);
                 }
             };
 
             let clog_table = match toml_table.get("clog") {
                 Some(table) => table,
                 None        => {
-                    return Err(Box::new(format!("Error parsing file {}\n\nPlease check the format or specify the options manually", cfg_file.to_str().unwrap_or("UNABLE TO DISPLAY"))))
+                    return Err(Error::ConfigFormatErr);
                 }
             };
 
@@ -414,8 +418,8 @@ impl Clog {
             toml_link_style = match clog_table.lookup("link-style") {
                 Some(val) => match val.as_str().unwrap_or("github").parse::<LinkStyle>() {
                     Ok(style) => Some(style),
-                    Err(err)   => {
-                        return Err(Box::new(format!("Error parsing file {}\n\n{}", cfg_file.to_str().unwrap_or("UNABLE TO DISPLAY"), err)))
+                    Err(..)  => {
+                        return Err(Error::LinkStyleErr);
                     }
                 },
                 None      => Some(LinkStyle::Github)
@@ -459,7 +463,7 @@ impl Clog {
         }
 
         if let Some(outfile) = toml_outfile {
-            self.changelog = outfile;
+            self.changelog = Some(outfile);
         }
 
         debugln!("Returning clog:\n{:?}", self);
@@ -480,7 +484,7 @@ impl Clog {
     ///     std::process::exit(1);
     /// });
     /// ```
-    pub fn from_matches(matches: &ArgMatches) -> ClogResult {
+    pub fn from_matches(matches: &ArgMatches) -> BuilderResult {
         debugln!("Creating clog from matches");
         let mut clog = if let Some(cfg) = matches.value_of("config") {
         debugln!("User passed in config file: {:?}", cfg);
@@ -549,8 +553,8 @@ impl Clog {
                         }
                         format!("{}{}", if had_v{"v"}else{""}, v)
                     },
-                    Err(e) => {
-                        return Err(Box::new(format!("Error: {}\n\n\tEnsure the tag format follows Semantic Versioning such as N.N.N\n\tor set the version manually with --setversion <version>" , e )));
+                    Err(..) => {
+                        return Err(Error::SemVerErr);
                     }
                 }
             } else {
@@ -577,10 +581,11 @@ impl Clog {
         }
 
         if let Some(file) = matches.value_of("outfile") {
-            clog.changelog = file.to_owned();
+            clog.changelog = Some(file.to_owned());
         }
 
         debugln!("Returning clog:\n{:?}", clog);
+
         Ok(clog)
     }
 
@@ -746,7 +751,7 @@ impl Clog {
     /// clog.changelog("/myproject/my_changelog.md");
     /// ```
     pub fn changelog<S: Into<String>>(&mut self, c: S) -> &mut Clog {
-        self.changelog = c.into();
+        self.changelog = Some(c.into());
         self
     }
 
@@ -991,36 +996,6 @@ impl Clog {
         self.section_map.iter().filter(|&(_, v)| v.iter().any(|s| s == alias)).map(|(k, _)| k).next().unwrap_or(self.section_map.keys().filter(|&k| *k == "Unknown".to_owned()).next().unwrap())
     }
 
-    /// Writes the changelog to a specified file, and prepends new commits if file exists, or
-    /// creates the file if it doesn't
-    ///
-    /// # Example
-    /// ```no_run
-    /// # use clog::Clog;
-    /// let mut clog = Clog::new().unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
-    /// });
-    /// 
-    /// clog.write_changelog_to("/myproject/new_changelog.md");
-    /// ```
-    pub fn write_changelog_to<P: AsRef<Path>>(&self, cl: P) {
-        let sm = SectionMap::from_commits(self.get_commits());
-
-        let mut contents = String::new();
-
-        File::open(cl.as_ref()).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
-
-        let mut file = File::create(cl.as_ref()).ok().unwrap();
-        let mut writer = LogWriter::new(&mut file, self);
-
-        writer.write_header().ok().expect("failed to write header");
-        for (sec, secmap) in sm.sections {
-            writer.write_section(&sec[..], &secmap.iter().collect::<BTreeMap<_,_>>()).ok().expect(&format!("failed to write {}", sec)[..]);
-        }
-        writer.write(&contents[..]).ok().expect("failed to write contents");
-    }
-
     /// Writes the changelog to the default location and file or wherever was specified by the TOML
     /// or configuration options. `Clog` prepends new commits if file exists, or
     /// creates the file if it doesn't.
@@ -1035,7 +1010,72 @@ impl Clog {
     /// 
     /// clog.write_changelog();
     /// ```
-    pub fn write_changelog(&self) {
-        self.write_changelog_to(&self.changelog[..]);
+    pub fn write_changelog(&self) -> WriterResult {
+        if let Some(ref cl) = self.changelog {
+            self.write_changelog_to(cl)
+        } else {
+            let out = stdout();
+            let mut out_buf = BufWriter::new(out.lock());
+            let mut writer = Markdown::new(&mut out_buf, self);
+
+            self.write_changelog_with(&mut writer, None)
+        }
+    }
+
+    /// Writes the changelog to a specified file, and prepends new commits if file exists, or
+    /// creates the file if it doesn't
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| e.exit());
+    /// 
+    /// clog.write_changelog_to("/myproject/new_changelog.md").unwrap_or_else(|e| e.exit());
+    /// ```
+    pub fn write_changelog_to<P: AsRef<Path>>(&self, cl: P) -> WriterResult {
+        let mut contents = String::with_capacity(256);
+        File::open(cl.as_ref()).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
+        contents.shrink_to_fit();
+
+        if let Ok(mut file) = File::create(cl.as_ref()) {
+            let mut writer = Markdown::new(&mut file, self);
+            self.write_changelog_with(&mut writer, Some(&*contents))
+        } else {
+            Err(Error::CreateFileErr)
+        }
+    }
+
+    /// Writes the changelog to a specified file, and prepends new commits if file exists, or
+    /// creates the file if it doesn't
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     println!("Error initializing: {}", e);
+    ///     std::process::exit(1);
+    /// });
+    /// 
+    /// clog.write_changelog_to("/myproject/new_changelog.md");
+    /// ```
+    pub fn write_changelog_with<W>(&self, writer: &mut W, old: Option<&str>) -> WriterResult
+                                      where W: Writer {
+        if let Err(..) = writer.write_header() {
+            return Err(Error::WriteErr);
+        }
+
+        let sm = SectionMap::from_commits(self.get_commits());
+
+        for (sec, secmap) in sm.sections {
+            try!(writer.write_section(&sec[..], &secmap.iter().collect::<BTreeMap<_,_>>()));
+        }
+
+        if let Some(s) = old {
+            if let Err(..) = writer.write(s.as_ref()) {
+                return Err(Error::WriteErr);
+            }
+        } 
+
+        Ok(())
     }
 }

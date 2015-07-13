@@ -3,14 +3,9 @@ extern crate clap;
 extern crate time;
 extern crate clog;
 
-use std::fs::File;
-use std::io::Read;
-use std::path::Path;
-use std::collections::BTreeMap;
-
 use clap::{App, Arg, ArgGroup};
 
-use clog::{LinkStyle, Clog, LogWriter, SectionMap};
+use clog::{LinkStyle, Clog};
 
 fn main () {
     let styles = LinkStyle::variants();
@@ -55,24 +50,15 @@ project directory (i.e. /myproject/.clog.toml) you do not need to use --work-tre
 
     let start_nsec = time::get_time().nsec;
 
-    let clog = Clog::from_matches(&matches).unwrap_or_else(|e| { println!("{}",e); std::process::exit(1); });
+    let clog = Clog::from_matches(&matches).unwrap_or_else(|e| e.exit());
 
-    let sm = SectionMap::from_commits(clog.get_commits());
+    if let Some(ref file) = clog.changelog {
+        clog.write_changelog_to(file).unwrap_or_else(|e| e.exit());
 
-    let mut contents = String::new();
-
-    File::open(&Path::new(&clog.changelog[..])).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
-
-    let mut file = File::create(&Path::new(&clog.changelog[..])).ok().unwrap();
-    let mut writer = LogWriter::new(&mut file, &clog);
-
-    writer.write_header().ok().expect("failed to write header");
-    for (sec, secmap) in sm.sections {
-        writer.write_section(&sec[..], &secmap.iter().collect::<BTreeMap<_,_>>()).ok().expect(&format!("failed to write {}", sec)[..]);
+        let end_nsec = time::get_time().nsec;
+        let elapsed_mssec = (end_nsec - start_nsec) / 1000000;
+        println!("changelog written. (took {} ms)", elapsed_mssec);
+    } else {
+        clog.write_changelog().unwrap_or_else(|e| e.exit());
     }
-    writer.write(&contents[..]).ok().expect("failed to write contents");
-
-    let end_nsec = time::get_time().nsec;
-    let elapsed_mssec = (end_nsec - start_nsec) / 1000000;
-    println!("changelog updated. (took {} ms)", elapsed_mssec);
 }

@@ -2,6 +2,7 @@
 //
 // #![cfg_attr(feature = "unstable", feature(plugin))]
 // #![cfg_attr(feature = "unstable", plugin(regex_macros))]
+// #![deny(missing_docs)]
 
 // DOCS
 
@@ -15,12 +16,13 @@ extern crate time;
 #[macro_use]
 mod macros;
 pub mod git;
-mod log_writer;
+pub mod writer;
 mod sectionmap;
 mod clog;
+pub mod error;
 
 pub use clog::{Clog, LinkStyle};
-pub use log_writer::LogWriter;
+pub use writer::{Writer, Markdown};
 pub use sectionmap::SectionMap;
 
 // The default config file

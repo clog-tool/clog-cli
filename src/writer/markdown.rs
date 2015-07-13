@@ -1,21 +1,24 @@
 use std::collections::BTreeMap;
-use std::io::{Write, Result};
+use std::io;
 
 use time;
 
-use git::Commit;
 use clog::Clog;
+use git::Commit;
+use error::Error;
+use writer::{Writer, WriterResult};
+
 
 /// Writes commits to a specified `Write` object
-pub struct LogWriter<'a, 'cc> {
+pub struct Markdown<'a, 'cc> {
     /// The `Write` object
-    writer: &'a mut (Write + 'a),
+    writer: &'a mut (io::Write + 'a),
     /// The options used when writing sections and commits
     options: &'cc Clog
 }
 
-impl<'a, 'cc> LogWriter<'a, 'cc> {
-    /// Creates a new instance of the LogWriter using a `Write` object and a `Clog` object as the
+impl<'a, 'cc> Markdown<'a, 'cc> {
+    /// Creates a new instance of the MarkdownWriter using a `Write` object and a `Clog` object as the
     /// configuration options to use while writing.
     ///
     /// # Example
@@ -39,13 +42,17 @@ impl<'a, 'cc> LogWriter<'a, 'cc> {
     /// // Create the LogWriter... 
     /// let mut writer = LogWriter::new(&mut file, &clog);
     /// ```
-    pub fn new<T>(writer: &'a mut T, options: &'cc Clog) -> LogWriter<'a, 'cc>
-        where T: Write + Send {
-        LogWriter {
+    pub fn new<T>(writer: &'a mut T, options: &'cc Clog) -> Markdown<'a, 'cc>
+        where T: io::Write {
+        Markdown {
             writer: writer,
             options: options
         }
     }
+
+}
+
+impl<'a, 'cc> Writer for Markdown<'a, 'cc> {
 
     /// Writes the initial header inforamtion for a release
     ///
@@ -74,7 +81,7 @@ impl<'a, 'cc> LogWriter<'a, 'cc> {
     /// let mut writer = LogWriter::new(&mut file, &clog);
     /// writer.write_header().ok().expect("failed to write header");
     /// ```
-    pub fn write_header(&mut self) -> Result<()> {
+    fn write_header(&mut self) -> io::Result<()> {
         let subtitle = match self.options.subtitle.len() {
             0 => self.options.subtitle.to_owned(),
             _ => format!(" {}", self.options.subtitle)
@@ -89,8 +96,20 @@ impl<'a, 'cc> LogWriter<'a, 'cc> {
         let date = time::now_utc();
 
         match date.strftime("%Y-%m-%d") {
-            Ok(date) => write!(self.writer, "<a name=\"{}\"></a>\n{} ({})\n\n", self.options.version, version_text, date),
-            Err(_)   => write!(self.writer, "<a name=\"{}\"></a>\n{} ({})\n\n", self.options.version, version_text, "XXXX-XX-XX")
+            Ok(date) => {
+                write!(
+                    self.writer,
+                    "<a name=\"{}\"></a>\n{} ({})\n\n",
+                    self.options.version, version_text, date
+                )
+            },
+            Err(_)   => {
+                write!(
+                    self.writer,
+                    "<a name=\"{}\"></a>\n{} ({})\n\n",
+                    self.options.version, version_text, "XXXX-XX-XX"
+                )
+            }
         }
     }
 
@@ -127,17 +146,21 @@ impl<'a, 'cc> LogWriter<'a, 'cc> {
     /// }
     /// writer.write(&contents[..]).ok().expect("failed to write contents");
     /// ```
-    pub fn write_section(&mut self, title: &str, section: &BTreeMap<&String, &Vec<Commit>>)
-                            -> Result<()> {
+    fn write_section(&mut self, title: &str, section: &BTreeMap<&String, &Vec<Commit>>)
+                            -> WriterResult {
         if section.len() == 0 { return Ok(()) }
 
-        try!(self.writer.write(&format!("\n#### {}\n\n", title)[..].as_bytes()));
+        if let Err(..) = self.writer.write(&format!("\n#### {}\n\n", title)[..].as_bytes()) {
+            return Err(Error::WriteErr);
+        }
 
         for (component, entries) in section.iter() {
             let nested = (entries.len() > 1) && !component.is_empty();
 
             let prefix = if nested {
-                try!(write!(self.writer, "* **{}**\n", component));
+                if let Err(..) = write!(self.writer, "* **{}**\n", component) {
+                    return Err(Error::WriteErr);
+                }
                 "  *".to_owned()
             } else if !component.is_empty() {
                 format!("* **{}**", component)
@@ -146,11 +169,15 @@ impl<'a, 'cc> LogWriter<'a, 'cc> {
             };
 
             for entry in entries.iter() {
-                try!(write!(self.writer, "{} {} ({}",
-                                         prefix,
-                                         entry.subject,
-                                         self.options.link_style
-                                             .commit_link(&entry.hash[..], &self.options.repo[..])));
+                if let Err(..) = write!(
+                                    self.writer, "{} {} ({}",
+                                    prefix,
+                                    entry.subject,
+                                    self.options.link_style
+                                        .commit_link(&*entry.hash, &self.options.repo[..])
+                                ) {
+                    return Err(Error::WriteErr);
+                }
 
                 if entry.closes.len() > 0 {
                     let closes_string = entry.closes.iter()
@@ -160,10 +187,14 @@ impl<'a, 'cc> LogWriter<'a, 'cc> {
                                                     .collect::<Vec<String>>()
                                                     .connect(", ");
 
-                    try!(write!(self.writer, ", closes {}", closes_string));
+                    if let Err(..) = write!(self.writer, ", closes {}", closes_string) {
+                        return Err(Error::WriteErr);
+                    }
                 }
 
-                try!(write!(self.writer, ")\n"));
+                if let Err(..) = write!(self.writer, ")\n") {
+                    return Err(Error::WriteErr);
+                }
             }
         }
 
@@ -171,7 +202,7 @@ impl<'a, 'cc> LogWriter<'a, 'cc> {
     }
 
     /// Writes some contents to the `Write` writer object
-    pub fn write(&mut self, content: &str)  -> Result<()> {
+    fn write(&mut self, content: &str) -> io::Result<()> {
         try!(write!(self.writer, "\n\n\n"));
         write!(self.writer, "{}", content)
     }

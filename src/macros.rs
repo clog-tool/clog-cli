@@ -1,5 +1,19 @@
-// regex cheat thanks to https://github.com/BurntSushi
+// Convenience for writing to stderr thanks to https://github.com/BurntSushi
+macro_rules! wlnerr(
+    ($($arg:tt)*) => ({
+        use std::io::{Write, stderr};
+        writeln!(&mut stderr(), $($arg)*).ok();
+    })
+);
 
+macro_rules! werr(
+    ($($arg:tt)*) => ({
+        use std::io::{Write, stderr};
+        write!(&mut stderr(), $($arg)*).ok();
+    })
+);
+
+// regex cheat thanks to https://github.com/BurntSushi
 // Until regex_macros compiles with nightly again, this directive should be commented out
 // #[cfg(not(unstable))]
 macro_rules! regex(
@@ -28,8 +42,4 @@ macro_rules! debugln {
 macro_rules! debug {
     ($fmt:expr) => ();
     ($fmt:expr, $($arg:tt)*) => ();
-}
-
-macro_rules! werr {
-    () => ()
 }
