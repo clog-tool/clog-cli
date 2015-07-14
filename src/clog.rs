@@ -973,8 +973,8 @@ impl Clog {
     }
 
     /// Writes the changelog to the default location and file or wherever was specified by the TOML
-    /// or configuration options. `Clog` prepends new commits if file exists, or
-    /// creates the file if it doesn't.
+    /// or configuration options or stdout if no pre-set option exists. `Clog` prepends new commits
+    /// if file exists, or creates the file if it doesn't.
     ///
     /// # Example
     /// ```no_run
@@ -1005,7 +1005,10 @@ impl Clog {
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| e.exit());
     /// 
-    /// clog.write_changelog_to("/myproject/new_changelog.md").unwrap_or_else(|e| e.exit());
+    /// clog.write_changelog_to("/myproject/new_changelog.md").unwrap_or_else(|e| {
+    ///     // Prints the error and exits appropriately
+    ///     e.exit();
+    /// });
     /// ```
     pub fn write_changelog_to<P: AsRef<Path>>(&self, cl: P) -> WriterResult {
         let mut contents = String::with_capacity(256);
@@ -1020,17 +1023,27 @@ impl Clog {
         }
     }
 
-    /// Writes the changelog to a specified file, and prepends new commits if file exists, or
-    /// creates the file if it doesn't
+    /// Writes a changelog with a specified `Writer` and optional contents to append after writing
+    /// such as the previous changelog
     ///
-    /// # Example
+    /// # Examples
+    ///
     /// ```no_run
-    /// # use clog::Clog;
-    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    /// # use clog::{Clog, Writer, Markdown};
+    /// # use std::io;
+    /// let clog = Clog::new().unwrap_or_else(|e| { 
     ///     e.exit();
     /// });
-    /// 
-    /// clog.write_changelog_to("/myproject/new_changelog.md");
+    ///
+    /// // Write changelog to stdout in Markdown format
+    /// let out = io::stdout();
+    /// let mut out_buf = io::BufWriter::new(out.lock());
+    /// let mut writer = Markdown::new(&mut out_buf, &clog);
+    ///
+    /// clog.write_changelog_with(&mut writer, None).unwrap_or_else(|e| {
+    ///     // Prints the error and exits appropriately
+    ///     e.exit();
+    /// });
     /// ```
     pub fn write_changelog_with<W>(&self, writer: &mut W, old: Option<&str>) -> WriterResult
                                       where W: Writer {
