@@ -216,8 +216,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let clog = Clog::new().unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// ```
     pub fn new() -> BuilderResult {
@@ -234,8 +233,7 @@ impl Clog {
     /// let clog = Clog::with_all("/myproject/.git",
     ///                           "/myproject",
     ///                           "/myproject/clog_conf.toml").unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// ```
     pub fn with_all<P: AsRef<Path>>(git_dir: P, work_tree: P, cfg_file: P) -> BuilderResult {
@@ -259,8 +257,7 @@ impl Clog {
     /// # use clog::Clog;
     /// let clog = Clog::with_dir_and_file("/myproject",
     ///                           "/myproject/clog_conf.toml").unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// ```
     pub fn with_dir_and_file<P: AsRef<Path>>(dir: P, cfg_file: P) -> BuilderResult {
@@ -302,8 +299,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let clog = Clog::with_dir("/myproject").unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// ```
     pub fn with_dir<P: AsRef<Path>>(dir: P) -> BuilderResult {
@@ -322,8 +318,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let clog = Clog::with_dirs("/myproject", "/myproject/.git").unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// ```
     pub fn with_dirs<P: AsRef<Path>>(git_dir: P, work_tree: P) -> BuilderResult {
@@ -347,8 +342,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let clog = Clog::from_file("/myproject/clog_conf.toml").unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// ```
     pub fn from_file<P: AsRef<Path>>(file: P) -> BuilderResult {
@@ -480,8 +474,7 @@ impl Clog {
     /// let matches = // clap settings...
     ///
     /// let clog = Clog::from_matches(matches).unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// ```
     pub fn from_matches(matches: &ArgMatches) -> BuilderResult {
@@ -595,8 +588,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// 
     /// clog.grep("BREAKS");
@@ -612,8 +604,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// 
     /// clog.format("%H%n%n==END==");
@@ -633,8 +624,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// 
     /// clog.repository("https://github.com/thoughtram/clog");
@@ -652,8 +642,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::{Clog, LinkStyle};
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// 
     /// clog.link_style(LinkStyle::Stash);
@@ -671,8 +660,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// 
     /// clog.version("v0.2.1-beta3");
@@ -688,8 +676,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// 
     /// clog.subtitle("My Awesome Release Title");
@@ -707,8 +694,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// 
     /// clog.from("6d8183f");
@@ -725,8 +711,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// 
     /// clog.to("123abc4d");
@@ -744,8 +729,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// 
     /// clog.changelog("/myproject/my_changelog.md");
@@ -761,8 +745,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// 
     /// clog.git_dir("/myproject/.git");
@@ -778,8 +761,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// 
     /// clog.git_work_tree("/myproject");
@@ -798,8 +780,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// 
     /// clog.patch_ver(true);
@@ -815,8 +796,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// 
     /// let commits = clog.get_commits();
@@ -880,8 +860,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// 
     /// let tag = clog.get_latest_tag();
@@ -905,8 +884,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// 
     /// let tag_ver = clog.get_latest_tag_ver();
@@ -929,8 +907,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// 
     /// let head_hash = clog.get_last_commit();
@@ -985,8 +962,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// 
     /// let section = clog.section_for("feat");
@@ -1004,8 +980,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// 
     /// clog.write_changelog();
@@ -1052,8 +1027,7 @@ impl Clog {
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     /// 
     /// clog.write_changelog_to("/myproject/new_changelog.md");

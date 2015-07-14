@@ -9,7 +9,43 @@ use error::Error;
 use writer::{Writer, WriterResult};
 
 
-/// Writes commits to a specified `Write` object
+/// Writes commits to a specified `Write` object in Markdown format
+///
+/// # Example
+///
+/// ```no_run
+/// # use std::fs::File;
+/// # use std::io::Read;
+/// # use std::path::Path;
+/// # use std::collections::BTreeMap;
+/// # use clog::{Clog, Markdown, Writer, SectionMap};
+/// let clog = Clog::new().unwrap_or_else(|e| { 
+///     e.exit();
+/// });
+///
+/// // Get the commits we're interested in...
+/// let sm = SectionMap::from_commits(clog.get_commits());
+///
+/// // Open and prepend, or create the changelog file...
+/// let mut contents = String::new();
+/// if let Some(ref file) = clog.changelog {
+///     File::open(file).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
+///     let mut file = File::create(file).ok().unwrap();
+///
+///     // Write the header...
+///     let mut writer = Markdown::new(&mut file, &clog);
+///     writer.write_header().ok().expect("failed to write header");
+///
+///     // Write the sections
+///     for (sec, secmap) in sm.sections {
+///         writer.write_section(&sec[..], &secmap.iter().collect::<BTreeMap<_,_>>()).ok().expect(&format!("failed to write {}", sec)[..]);
+///     }
+///
+///     // Write old changelog data last
+///     writer.write(&contents[..]).ok().expect("failed to write contents");
+/// }
+///
+/// ```
 pub struct Markdown<'a, 'cc> {
     /// The `Write` object
     writer: &'a mut (io::Write + 'a),
@@ -18,29 +54,22 @@ pub struct Markdown<'a, 'cc> {
 }
 
 impl<'a, 'cc> Markdown<'a, 'cc> {
-    /// Creates a new instance of the MarkdownWriter using a `Write` object and a `Clog` object as the
-    /// configuration options to use while writing.
+    /// Creates a new instance of the `Markdown` struct using a `Write` object and a `Clog` object
+    /// as the configuration options to use while writing.
     ///
     /// # Example
     ///
     /// ```no_run
-    /// # use std::fs::File;
-    /// # use std::io::Read;
-    /// # use std::path::Path;
-    /// # use std::collections::BTreeMap;
-    /// # use clog::{Clog, LogWriter};
+    /// # use std::io::{stdout, BufWriter};
+    /// # use clog::{Clog, Markdown};
     /// let clog = Clog::new().unwrap_or_else(|e| { 
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     ///
-    /// // Open and prepend, or create the changelog file...
-    /// let mut contents = String::new();
-    /// File::open(&Path::new(&clog.changelog[..])).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
-    /// let mut file = File::create(&Path::new(&clog.changelog[..])).ok().unwrap();
-    ///
-    /// // Create the LogWriter... 
-    /// let mut writer = LogWriter::new(&mut file, &clog);
+    /// // Create a Markdown writer to wrap stdout
+    /// let out = stdout();
+    /// let mut out_buf = BufWriter::new(out.lock());
+    /// let mut writer = Markdown::new(&mut out_buf, &clog);
     /// ```
     pub fn new<T>(writer: &'a mut T, options: &'cc Clog) -> Markdown<'a, 'cc>
         where T: io::Write {
@@ -53,7 +82,6 @@ impl<'a, 'cc> Markdown<'a, 'cc> {
 }
 
 impl<'a, 'cc> Writer for Markdown<'a, 'cc> {
-
     /// Writes the initial header inforamtion for a release
     ///
     /// # Example
@@ -63,10 +91,9 @@ impl<'a, 'cc> Writer for Markdown<'a, 'cc> {
     /// # use std::io::Read;
     /// # use std::path::Path;
     /// # use std::collections::BTreeMap;
-    /// # use clog::{Clog, LogWriter, SectionMap};
+    /// # use clog::{Clog, SectionMap, Writer, Markdown};
     /// let clog = Clog::new().unwrap_or_else(|e| { 
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     ///
     /// // Get the commits we're interested in...
@@ -74,12 +101,13 @@ impl<'a, 'cc> Writer for Markdown<'a, 'cc> {
     ///
     /// // Open and prepend, or create the changelog file...
     /// let mut contents = String::new();
-    /// File::open(&Path::new(&clog.changelog[..])).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
-    /// let mut file = File::create(&Path::new(&clog.changelog[..])).ok().unwrap();
-    ///
-    /// // Write the header...
-    /// let mut writer = LogWriter::new(&mut file, &clog);
-    /// writer.write_header().ok().expect("failed to write header");
+    /// if let Some(ref file) = clog.changelog {
+    ///     File::open(file).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
+    ///     let mut file = File::create(file).ok().unwrap();
+    ///     // Write the header...
+    ///     let mut writer = Markdown::new(&mut file, &clog);
+    ///     writer.write_header().ok().expect("failed to write header");
+    /// }
     /// ```
     fn write_header(&mut self) -> io::Result<()> {
         let subtitle = match self.options.subtitle.len() {
@@ -122,10 +150,9 @@ impl<'a, 'cc> Writer for Markdown<'a, 'cc> {
     /// # use std::io::Read;
     /// # use std::path::Path;
     /// # use std::collections::BTreeMap;
-    /// # use clog::{Clog, LogWriter, SectionMap};
+    /// # use clog::{Clog, Markdown, Writer, SectionMap};
     /// let clog = Clog::new().unwrap_or_else(|e| { 
-    ///     println!("Error initializing: {}", e);
-    ///     std::process::exit(1);
+    ///     e.exit();
     /// });
     ///
     /// // Get the commits we're interested in...
@@ -133,18 +160,23 @@ impl<'a, 'cc> Writer for Markdown<'a, 'cc> {
     ///
     /// // Open and prepend, or create the changelog file...
     /// let mut contents = String::new();
-    /// File::open(&Path::new(&clog.changelog[..])).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
-    /// let mut file = File::create(&Path::new(&clog.changelog[..])).ok().unwrap();
+    /// if let Some(ref file) = clog.changelog {
+    ///     File::open(file).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
+    ///     let mut file = File::create(file).ok().unwrap();
     ///
-    /// // Write the header...
-    /// let mut writer = LogWriter::new(&mut file, &clog);
-    /// writer.write_header().ok().expect("failed to write header");
+    ///     // Write the header...
+    ///     let mut writer = Markdown::new(&mut file, &clog);
+    ///     writer.write_header().ok().expect("failed to write header");
     ///
-    /// // Write the sections
-    /// for (sec, secmap) in sm.sections {
-    ///    writer.write_section(&sec[..], &secmap.iter().collect::<BTreeMap<_,_>>()).ok().expect(&format!("failed to write {}", sec)[..]);
+    ///     // Write the sections
+    ///     for (sec, secmap) in sm.sections {
+    ///         writer.write_section(&sec[..], &secmap.iter().collect::<BTreeMap<_,_>>()).ok().expect(&format!("failed to write {}", sec)[..]);
+    ///     }
+    ///
+    ///     // Write old changelog data last
+    ///     writer.write(&contents[..]).ok().expect("failed to write contents");
     /// }
-    /// writer.write(&contents[..]).ok().expect("failed to write contents");
+    ///
     /// ```
     fn write_section(&mut self, title: &str, section: &BTreeMap<&String, &Vec<Commit>>)
                             -> WriterResult {

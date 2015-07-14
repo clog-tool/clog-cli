@@ -1,17 +1,29 @@
 use std::error::Error as StdError;
 use std::fmt;
 
+/// An enum for describing and handling various errors encountered while dealing with `clog`
+/// building, or writing of changelogs.
 #[derive(Debug)]
 pub enum Error {
+    /// Generated while parsing config files such .clog.toml
     ConfigParseErr,
+    /// Generated if the config file is not in TOML format
     ConfigFormatErr,
+    /// Generated if the OS cannot determine the current directory
     CurrentDirErr,
+    /// Generated when unable to read the TOML config file (perhaps due to permissions, etc.)
     TomlReadErr,
+    /// Generated when an unrecognized link-style value is used
     LinkStyleErr,
+    /// Generated when a string cannot be parsed to a SemVer value
     SemVerErr,
+    /// Generated when there are errors creating the output file or stream
     CreateFileErr,
+    /// Generated when there are errors writing to the changelog output file
     WriteErr,
+    /// Generic catch all I/O related error
     IoErr,
+    /// Unknown, but fatal error (a catch all)
     UnknownErr
 }
 
@@ -38,12 +50,6 @@ impl Error {
         }
     }
 }
-
-// impl From<StdIoErr> for Error {
-//     fn from(e: StdIoErr) -> Error {
-//         Error::IoErr
-//     }
-// }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

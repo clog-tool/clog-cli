@@ -2,7 +2,6 @@
 //
 // #![cfg_attr(feature = "unstable", feature(plugin))]
 // #![cfg_attr(feature = "unstable", plugin(regex_macros))]
-// #![deny(missing_docs)]
 
 // DOCS
 
