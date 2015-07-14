@@ -972,9 +972,7 @@ impl Clog {
         self.section_map.iter().filter(|&(_, v)| v.iter().any(|s| s == alias)).map(|(k, _)| k).next().unwrap_or(self.section_map.keys().filter(|&k| *k == "Unknown".to_owned()).next().unwrap())
     }
 
-    /// Writes the changelog to the default location and file or wherever was specified by the TOML
-    /// or configuration options or stdout if no pre-set option exists. `Clog` prepends new commits
-    /// if file exists, or creates the file if it doesn't.
+    /// Writes the changelog using whatever options have been specified thus var.
     ///
     /// # Example
     /// ```no_run
@@ -998,7 +996,7 @@ impl Clog {
     }
 
     /// Writes the changelog to a specified file, and prepends new commits if file exists, or
-    /// creates the file if it doesn't
+    /// creates the file if it doesn't.
     ///
     /// # Example
     /// ```no_run
@@ -1023,8 +1021,8 @@ impl Clog {
         }
     }
 
-    /// Writes a changelog with a specified `Writer` and optional contents to append after writing
-    /// such as the previous changelog
+    /// Writes a changelog with a specified `Writer` format and optional contents to append after
+    /// writing such as the previous changelog
     ///
     /// # Examples
     ///
@@ -1058,7 +1056,7 @@ impl Clog {
         }
 
         if let Some(s) = old {
-            if let Err(..) = writer.write(s.as_ref()) {
+            if let Err(..) = writer.write(s) {
                 return Err(Error::WriteErr);
             }
         } 
