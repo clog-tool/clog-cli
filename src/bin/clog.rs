@@ -13,26 +13,36 @@ fn main () {
         // Pull version from Cargo.toml
         .version(&format!("v{}", crate_version!())[..])
         .about("a conventional changelog for the rest of us")
-        .args_from_usage("-r, --repository=[repo]   'Repo used for link generation (without the .git, e.g. https://github.com/thoughtram/clog)'
-                          -f, --from=[from]         'e.g. 12a8546'
-                          -M, --major               'Increment major version by one (Sets minor and patch to 0)'
-                          -g, --git-dir=[gitdir]    'Local .git directory (defaults to current dir + \'.git\')*'
-                          -w, --work-tree=[workdir] 'Local working tree of the git project (defaults to current dir)*' 
-                          -m, --minor               'Increment minor version by one (Sets patch to 0)'
-                          -p, --patch               'Increment patch version by one'
-                          -s, --subtitle=[subtitle] 'e.g. \"Crazy Release Title\"'
-                          -t, --to=[to]             'e.g. 8057684 (Defaults to HEAD when omitted)'
-                          -o, --outfile=[outfile]   'Where to write the changelog (Defaults to \'changelog.md\')'
-                          -c, --config=[config]     'The Clog Configuration TOML file to use (Defaults to \'.clog.toml\')**'
-                          --setversion=[ver]        'e.g. 1.0.1'")
+        .args_from_usage("-r, --repository=[repo]     'Repository used for generating commit and issue links{n}\
+                                                       (without the .git, e.g. https://github.com/thoughtram/clog)'
+                          -f, --from=[from]           'e.g. 12a8546'
+                          -M, --major                 'Increment major version by one (Sets minor and patch to 0)'
+                          -g, --git-dir=[gitdir]      'Local .git directory (defaults to current dir + \'.git\')*'
+                          -w, --work-tree=[workdir]   'Local working tree of the git project (defaults to current dir)*' 
+                          -m, --minor                 'Increment minor version by one (Sets patch to 0)'
+                          -p, --patch                 'Increment patch version by one'
+                          -s, --subtitle=[subtitle]   'e.g. \"Crazy Release Title\"'
+                          -t, --to=[to]               'e.g. 8057684 (Defaults to HEAD when omitted)'
+                          -o, --outfile=[outfile]     'Where to write the changelog (Defaults to stdout when omitted)'
+                          -c, --config=[config]       'The Clog Configuration TOML file to use (Defaults to \'.clog.toml\')**'
+                          -i, --infile=[infile]       'A changelog to append to, but *NOT* write to (Useful in{n}\
+                                                       conjunction with --outfile)'
+                          --setversion=[ver]          'e.g. 1.0.1'")
         // Because --from-latest-tag can't be used with --from, we add it seperately so we can
         // specify a .conflicts_with()
         .arg(Arg::from_usage("-F, --from-latest-tag 'use latest tag as start (instead of --from)'")
                 .conflicts_with("from"))
         // Because we may want to add more "flavors" at a later date, we can automate the process
         // of enumerating all possible values with clap
-        .arg(Arg::from_usage("-l, --link-style=[style]     'The style of repository link to generate (Defaults to github)'")
+        .arg(Arg::from_usage("-l, --link-style=[style]     'The style of repository link to generate{n}(Defaults to github)'")
             .possible_values(&styles))
+        // Because no one should use --changelog and either an --infile or --outfile, we add those
+        // to conflicting lists
+        .arg(Arg::from_usage("-C, --changelog=[changelog] 'A previous changelog to prepend new changes to (this is like using{n}\
+                                                           the same file for both --infile and --outfile and should not be{n}\
+                                                           used in conjuction with either)'")
+            .conflicts_with("infile")
+            .conflicts_with("outfile"))
         // Since --setversion shouldn't be used with any of the --major, --minor, or --match, we
         // set those as exclusions
         .arg_group(ArgGroup::with_name("setver")
@@ -52,7 +62,7 @@ project directory (i.e. /myproject/.clog.toml) you do not need to use --work-tre
 
     let clog = Clog::from_matches(&matches).unwrap_or_else(|e| e.exit());
 
-    if let Some(ref file) = clog.changelog {
+    if let Some(ref file) = clog.outfile {
         clog.write_changelog_to(file).unwrap_or_else(|e| e.exit());
 
         let end_nsec = time::get_time().nsec;

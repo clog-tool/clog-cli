@@ -119,8 +119,10 @@ pub struct Clog {
     pub from: String,
     /// Where to stop looking for commits using a hash (or short hash). (Defaults to `HEAD`)
     pub to: String,
-    /// The file to use as the changelog. (Defaults to `changelog.md`)
-    pub changelog: Option<String>,
+    /// The file to use as the old changelog data to be appended to anything new found.
+    pub infile: Option<String>,
+    /// The file to use as the changelog output file (Defaults to `stdout`)
+    pub outfile: Option<String>,
     /// Maps out the sections and aliases used to trigger those sections. The keys are the section
     /// name, and the values are an array of aliases.
     pub section_map: HashMap<String, Vec<String>>,
@@ -147,7 +149,8 @@ impl fmt::Debug for Clog {
             subtitle: {:?}
             from: {:?}
             to: {:?}
-            changelog: {:?}
+            infile: {:?}
+            outfile: {:?}
             section_map: {:?}
             git_dir: {:?}
             git_work_tree: {:?}
@@ -163,12 +166,13 @@ impl fmt::Debug for Clog {
         self.subtitle,
         self.from,
         self.to,
-        self.changelog,
+        self.infile,
+        self.outfile,
         self.section_map,
         self.git_dir,
         self.git_work_tree,
         self.regex,
-        self.closes_regex
+        self.closes_regex,
         ) 
     }
 }
@@ -176,7 +180,7 @@ impl fmt::Debug for Clog {
 
 impl Clog {
     fn _new() -> Clog {
-        debugln!("Creating private default clog");
+        debugln!("Creating default clog with _new()");
         let mut sections = HashMap::new();
         sections.insert("Features".to_owned(), vec!["ft".to_owned(), "feat".to_owned()]);
         sections.insert("Bug Fixes".to_owned(), vec!["fx".to_owned(), "fix".to_owned()]);
@@ -200,12 +204,13 @@ impl Clog {
             subtitle: "".to_owned(),
             from: "".to_owned(),
             to: "HEAD".to_owned(),
-            changelog: None,
+            infile: None,
+            outfile: None,
             section_map: sections,
             git_dir: None,
             git_work_tree: None,
             regex: regex!(r"^([^:\(]+?)(?:\(([^:\)]*?)?\))?:(.*)"),
-            closes_regex: regex!(r"(?:Closes|Fixes|Resolves)\s((?:#(\d+)(?:,\s)?)+)")
+            closes_regex: regex!(r"(?:Closes|Fixes|Resolves)\s((?:#(\d+)(?:,\s)?)+)"),
         }
     }
 
@@ -220,7 +225,8 @@ impl Clog {
     /// });
     /// ```
     pub fn new() -> BuilderResult {
-        debugln!("Creating public default clog");
+        debugln!("Creating default clog with new()");
+        debugln!("Trying default config file");
         Clog::from_file(CLOG_CONFIG_FILE)
     }
 
@@ -373,6 +379,8 @@ impl Clog {
         let mut toml_subtitle = None;
         let mut toml_link_style = None;
         let mut toml_outfile = None;
+        let mut toml_infile = None;
+        let mut toml_changelog = None;
 
         if let Ok(ref mut toml_f) = File::open(cfg_file) {
             debugln!("Found file");
@@ -419,7 +427,15 @@ impl Clog {
                 None      => Some(LinkStyle::Github)
             };
             toml_outfile = match clog_table.lookup("outfile") {
-                Some(val) => Some(val.as_str().unwrap_or("changelog.md").to_owned()),
+                Some(val) => Some(val.as_str().unwrap_or("").to_owned()),
+                None      => None
+            };
+            toml_infile = match clog_table.lookup("infile") {
+                Some(val) => Some(val.as_str().unwrap_or("").to_owned()),
+                None      => None
+            };
+            toml_changelog = match clog_table.lookup("changelog") {
+                Some(val) => Some(val.as_str().unwrap_or("").to_owned()),
                 None      => None
             };
             match toml_table.get("sections") {
@@ -438,6 +454,8 @@ impl Clog {
                 },
                 None        => ()
             };
+        } else {
+            debugln!("File didn't exist")
         };
 
         if toml_from_latest.unwrap_or(false) {
@@ -457,7 +475,16 @@ impl Clog {
         }
 
         if let Some(outfile) = toml_outfile {
-            self.changelog = Some(outfile);
+            self.outfile = Some(outfile);
+        }
+
+        if let Some(infile) = toml_infile {
+            self.infile = Some(infile);
+        }
+
+        if let Some(ref cl) = toml_changelog {
+            self.outfile = Some(cl.to_owned());
+            self.infile = Some(cl.to_owned());
         }
 
         debugln!("Returning clog:\n{:?}", self);
@@ -574,7 +601,16 @@ impl Clog {
         }
 
         if let Some(file) = matches.value_of("outfile") {
-            clog.changelog = Some(file.to_owned());
+            clog.outfile = Some(file.to_owned());
+        }
+
+        if let Some(file) = matches.value_of("infile") {
+            clog.infile = Some(file.to_owned());
+        }
+
+        if let Some(file) = matches.value_of("changelog") {
+            clog.infile = Some(file.to_owned());
+            clog.outfile = Some(file.to_owned());
         }
 
         debugln!("Returning clog:\n{:?}", clog);
@@ -721,7 +757,7 @@ impl Clog {
         self
     }
 
-    /// Sets the changelog file to output or prepend to (Defaults to `changelog.md`)
+    /// Sets the changelog file to output or prepend to (Defaults to `stdout` if omitted)
     ///
     /// **NOTE:** Anything set here will override anything in a configuration TOML file
     ///
@@ -734,8 +770,53 @@ impl Clog {
     /// 
     /// clog.changelog("/myproject/my_changelog.md");
     /// ```
-    pub fn changelog<S: Into<String>>(&mut self, c: S) -> &mut Clog {
-        self.changelog = Some(c.into());
+    pub fn changelog<S: Into<String> + Clone>(&mut self, c: S) -> &mut Clog {
+        self.infile = Some(c.clone().into());
+        self.outfile = Some(c.into());
+        self
+    }
+
+    /// Sets the changelog output file to output or prepend to (Defaults to `stdout` if omitted),
+    /// this is useful inconjunction with `Clog::infile()` because it allows to read previous
+    /// commits from one place and output to another.
+    ///
+    /// **NOTE:** Anything set here will override anything in a configuration TOML file
+    ///
+    /// **NOTE:** This should *not* be used in conjunction with `Clog::changelog()`
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     e.exit();
+    /// });
+    /// 
+    /// clog.outfile("/myproject/my_changelog.md");
+    /// ```
+    pub fn outfile<S: Into<String>>(&mut self, c: S) -> &mut Clog {
+        self.outfile = Some(c.into());
+        self
+    }
+
+    /// Sets the changelog input file to read previous commits or changelog data from. This is
+    /// useful inconjunction with `Clog::infile()` because it allows to read previous commits from 
+    /// one place and output to another.
+    ///
+    /// **NOTE:** Anything set here will override anything in a configuration TOML file
+    ///
+    /// **NOTE:** This should *not* be used in conjunction with `Clog::changelog()`
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     e.exit();
+    /// });
+    /// 
+    /// clog.infile("/myproject/my_old_changelog.md");
+    /// ```
+    pub fn infile<S: Into<String>>(&mut self, c: S) -> &mut Clog {
+        self.infile = Some(c.into());
         self
     }
 
@@ -969,7 +1050,14 @@ impl Clog {
     /// assert_eq!("Features", section);
     /// ```
     pub fn section_for(&self, alias: &str) -> &String {
-        self.section_map.iter().filter(|&(_, v)| v.iter().any(|s| s == alias)).map(|(k, _)| k).next().unwrap_or(self.section_map.keys().filter(|&k| *k == "Unknown".to_owned()).next().unwrap())
+        self.section_map.iter()
+                        .filter(|&(_, v)| v.iter().any(|s| s == alias))
+                        .map(|(k, _)| k)
+                        .next()
+                        .unwrap_or(self.section_map.keys()
+                                                   .filter(|&k| k == "Unknown")
+                                                   .next()
+                                                   .unwrap())
     }
 
     /// Writes the changelog using whatever options have been specified thus var.
@@ -984,14 +1072,20 @@ impl Clog {
     /// clog.write_changelog();
     /// ```
     pub fn write_changelog(&self) -> WriterResult {
-        if let Some(ref cl) = self.changelog {
+        debugln!("Writing changelog with preset options");
+        if let Some(ref cl) = self.outfile {
+            debugln!("outfile set to: {:?}", cl);
             self.write_changelog_to(cl)
+        } else if let Some(ref cl) = self.infile {
+            debugln!("outfile not set but infile set to: {:?}", cl);
+            self.write_changelog_from(cl)
         } else {
+            debugln!("outfile and infile not set using stdout");
             let out = stdout();
             let mut out_buf = BufWriter::new(out.lock());
             let mut writer = Markdown::new(&mut out_buf, self);
 
-            self.write_changelog_with(&mut writer, None)
+            self._write_changelog_with(&mut writer, None)
         }
     }
 
@@ -999,6 +1093,7 @@ impl Clog {
     /// creates the file if it doesn't.
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| e.exit());
@@ -1009,15 +1104,59 @@ impl Clog {
     /// });
     /// ```
     pub fn write_changelog_to<P: AsRef<Path>>(&self, cl: P) -> WriterResult {
+        debugln!("Writing changelog to file: {:?}", cl.as_ref());
         let mut contents = String::with_capacity(256);
-        File::open(cl.as_ref()).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
+        if let Some(ref infile) = self.infile {
+            debugln!("infile set to: {:?}", infile);
+            File::open(infile).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
+        } else {
+            debugln!("infile not set, trying the outfile");
+            File::open(cl.as_ref()).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
+        }
         contents.shrink_to_fit();
 
         if let Ok(mut file) = File::create(cl.as_ref()) {
             let mut writer = Markdown::new(&mut file, self);
-            self.write_changelog_with(&mut writer, Some(&*contents))
+            self._write_changelog_with(&mut writer, Some(&*contents))
         } else {
             Err(Error::CreateFileErr)
+        }
+    }
+
+    /// Writes the changelog from a specified input file, and appends new commits 
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use clog::Clog;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| e.exit());
+    /// 
+    /// clog.write_changelog_from("/myproject/new_old_changelog.md").unwrap_or_else(|e| {
+    ///     // Prints the error and exits appropriately
+    ///     e.exit();
+    /// });
+    /// ```
+    pub fn write_changelog_from<P: AsRef<Path>>(&self, cl: P) -> WriterResult {
+        debugln!("Writing changelog from file: {:?}", cl.as_ref());
+        let mut contents = String::with_capacity(256);
+        File::open(cl.as_ref()).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
+        contents.shrink_to_fit();
+
+        if let Some(ref ofile) = self.outfile {
+            debugln!("outfile set to: {:?}", ofile);
+            if let Ok(mut file) = File::create(ofile) {
+                let mut writer = Markdown::new(&mut file, self);
+                self._write_changelog_with(&mut writer, Some(&*contents))
+            } else {
+                Err(Error::CreateFileErr)
+            }
+        } else {
+            debugln!("outfile not set, using stdout");
+            let out = stdout();
+            let mut out_buf = BufWriter::new(out.lock());
+            let mut writer = Markdown::new(&mut out_buf, self);
+
+            self._write_changelog_with(&mut writer, Some(&*contents))
         }
     }
 
@@ -1043,8 +1182,24 @@ impl Clog {
     ///     e.exit();
     /// });
     /// ```
-    pub fn write_changelog_with<W>(&self, writer: &mut W, old: Option<&str>) -> WriterResult
-                                      where W: Writer {
+    pub fn write_changelog_with<W>(&self, writer: &mut W) -> WriterResult
+                                   where W: Writer {
+        debugln!("Writing changelog from writer");
+        let mut contents = String::with_capacity(256);
+        if let Some(ref infile) = self.infile {
+            debugln!("infile set to: {:?}", infile);
+            File::open(infile).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
+        } else {
+            debugln!("infile not set");
+        }
+        contents.shrink_to_fit();
+        self._write_changelog_with(writer, Some(&*contents))
+    }
+
+    // Does the actual changelog writing
+    fn _write_changelog_with<W>(&self, writer: &mut W, old: Option<&str>) -> WriterResult
+                                where W: Writer {
+        debugln!("Actually writing changelog");
         if let Err(..) = writer.write_header() {
             return Err(Error::WriteErr);
         }
@@ -1056,10 +1211,13 @@ impl Clog {
         }
 
         if let Some(s) = old {
+            debugln!("There are old contents to append");
             if let Err(..) = writer.write(s) {
                 return Err(Error::WriteErr);
             }
-        } 
+        } else {
+            debugln!("No old contents to append");
+        }
 
         Ok(())
     }
