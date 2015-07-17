@@ -455,7 +455,7 @@ impl Clog {
                 None        => ()
             };
         } else {
-            debugln!("File didn't exist")
+            debugln!("File didn't exist");
         };
 
         if toml_from_latest.unwrap_or(false) {

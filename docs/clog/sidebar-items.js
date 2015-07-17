@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["LinkStyle",""]],"mod":[["git",""]],"struct":[["Clog","The base struct used to set options and interact with the library."],["LogWriter","Writes commits to a specified `Write` object"],["SectionMap","A struct which holds sections to and components->commits map"]]});
