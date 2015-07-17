@@ -245,7 +245,7 @@ Now you can update your `MyChangelog.md` with `clog --patch` (assuming you want 
 
 ### Custom Sections
 
-By default, `clog` will display two sections in your changelog, `Features` and `Bug Fixes`. You can add additional sections by using a `.clog.toml` file. To add more sections, simply add a `[sections]` table, along with the section name and aliases you'd like to use in your commit messages:
+By default, `clog` will display three sections in your changelog, `Features`, `Performance`, and `Bug Fixes`. You can add additional sections by using a `.clog.toml` file. To add more sections, simply add a `[sections]` table, along with the section name and aliases you'd like to use in your commit messages:
 
 ```toml
 [sections]
