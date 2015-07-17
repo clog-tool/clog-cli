@@ -92,16 +92,23 @@ FLAGS:
     -V, --version            Prints version information
 
 OPTIONS:
-    -c, --config <config>            The Clog Configuration TOML file to use (Defaults to '.clog.toml')**
-    -f, --from <from>                e.g. 12a8546
-    -g, --git-dir <gitdir>           Local .git directory (defaults to current dir + '.git')*
-    -o, --outfile <outfile>          Where to write the changelog (Defaults to 'changelog.md')
-    -r, --repository <repo>          Repo used for link generation (without the .git, e.g. https://github.com/thoughtram/clog)
-    -l, --link-style <style>         The style of repository link to generate (Defaults to github) [values: Github, Gitlab, Stash]
-    -s, --subtitle <subtitle>        e.g. "Crazy Release Title"
-    -t, --to <to>                    e.g. 8057684 (Defaults to HEAD when omitted)
-        --setversion <ver>           e.g. 1.0.1
-    -w, --work-tree <workdir>        Local working tree of the git project (defaults to current dir)*
+    -C, --changelog <changelog>    A previous changelog to prepend new changes to (this is like using
+                                   the same file for both --infile and --outfile and should not be
+                                   used in conjuction with either)
+    -c, --config <config>          The Clog Configuration TOML file to use (Defaults to '.clog.toml')**
+    -f, --from <from>              e.g. 12a8546
+    -g, --git-dir <gitdir>         Local .git directory (defaults to current dir + '.git')*
+    -i, --infile <infile>          A changelog to append to, but *NOT* write to (Useful in
+                                   conjunction with --outfile)
+    -o, --outfile <outfile>        Where to write the changelog (Defaults to stdout when omitted)
+    -r, --repository <repo>        Repository used for generating commit and issue links
+                                   (without the .git, e.g. https://github.com/thoughtram/clog)
+    -l, --link-style <style>       The style of repository link to generate
+                                   (Defaults to github) [values: Github Gitlab Stash]
+    -s, --subtitle <subtitle>      e.g. "Crazy Release Title"
+    -t, --to <to>                  e.g. 8057684 (Defaults to HEAD when omitted)
+        --setversion <ver>         e.g. 1.0.1
+    -w, --work-tree <workdir>      Local working tree of the git project (defaults to current dir)*
 
 * If your .git directory is a child of your project directory (most common, such as
 /myproject/.git) AND not in the current working directory (i.e you need to use --work-tree or
@@ -121,11 +128,17 @@ In order to see it in action, you'll need a repository that already has some of 
 
 2. Ensure you already `clog` binary from any of the steps above
 
-3. Delete the old changelog file `rm changelog.md` (so that you can see what a fresh one looks like)
-
-4. Run clog `clog -r https://github.com/thoughtram/clog --setversion 0.1.0 --subtitle "Crazy Dog" --from 6d8183f`
-
-5. Open `changelog.md` in your favorite markdown viewer
+4. There are many, many ways to run `clog`. Note, in these examples we will be typing the same options over and over again, in times like that we could a [clog TOML configuration file](https://github.com/thoughtram/clog#default-options) to specify those options that don't normally change. Also note, all these CLI options have short versions as well, we're using the long version because they're easier to understand. 
+ a. Let's start by picking up only new commits since our last release (this may not be a lot...or none)
+ b. Run `clog -r https://github.com/thoughtram/clog --outfile only_new.md`
+ c. By default, `clog` outputs to `stdout` unless you have a file set inside a TOML configuration file. (Note, we could have used the shell `>` operator instead of `--outfile`)
+ d. Anything options you set via the CLI will override anything you set the configuration file.
+ e. Let's now tell `clog` where it can find our old changelog, and prepend any new commits to that old data
+ f. Run `clog -r https://github.com/thoughtram/clog --infile changelog.md --outfile new_combined.md`
+ g. Finally, let's assume like most projects we just want to use one file, and prepend all new data to our old changelog (most useful)
+ h. First make a backup of the `changelog.md` so you can compare it later `cp changelog.md changelog.md.bak`
+ i. Run `clog -r https://github.com/thoughtram/clog --changelog changelog.md`
+ j. Try viewing any of the `only_new.md`, `new_combined.md`, `changelog.md.bak`, or `changelog.md` in your favorite markdown viewer to compare them.
 
 ### As a Library
 
@@ -158,20 +171,23 @@ use clog::Clog;
 fn main() {
     // Create the struct
     let mut clog = Clog::with_dir("~/clog").unwrap_or_else(|e| { 
-        println!("{}",e); 
-        std::process::exit(1); 
+        // Prints the error message and exits
+        e.exit();
     });
 
     // Set some options
     clog.repository("https://github.com/thoughtram/clog")
         .subtitle("Crazy Dog")
+        .changelog("changelog.md")
         .from("6d8183f")
         .version("0.1.0");
 
     // Write the changelog to the current working directory
     //
     // Alternatively we could have used .write_changelog_to("/somedir/some_file.md")
-    clog.write_changelog();
+    clog.write_changelog().unwrap_or_else(|e| {
+        e.exit();
+    });
 }
 ```
 
@@ -184,14 +200,39 @@ fn main() {
 
 ```toml
 [clog]
+# A repository link with the trailing '.git' which will be used to generate
+# all commit and issue links
 repository = "https://github.com/thoughtram/clog"
+# A constant release title
 subtitle = "my awesome title"
 
 # specify the style of commit links to generate, defaults to "github" if omitted
 link-style = "github"
 
-# sets the changelog output file, defaults to "changelog.md" if omitted
+# The preferred way to set a constant changelog. This file will be read for old changelog
+# data, then prepended to for new changelog data. It's the equivilant to setting 
+# both infile and outfile to the same file.
+#
+# Do not use with outfile or infile fields!
+#
+# Defaults to stdout when omitted
+changelog = "mychangelog.md"
+
+# This sets an output file only! If it exists already, new changelog data will be
+# prepended, if not it will be created.
+#
+# This is useful in conjunction with the infile field if you have a separate file
+# that you would like to append after newly created clog data
+#
+# Defaults to stdout when omitted
 outfile = "MyChangelog.md"
+
+# This sets the input file old! Any data inside this file will be appended to any
+# new data that clog picks up
+#
+# This is useful in conjunction with the outfile field where you may wish to read
+# from one file and append that data to the clog output in another
+infile = "My_old_changelog.md"
 
 # If you use tags, you can set the following if you wish to only pick
 # up changes since your latest tag
