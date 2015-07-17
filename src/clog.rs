@@ -100,7 +100,7 @@ impl LinkStyle {
 /// The base struct used to set options and interact with the library.
 pub struct Clog {
     /// The grep search pattern used to find commits we are interested in (Defaults to: 
-    /// "^ft|^feat|^fx|^fix|^unk|BREAKING\'")
+    /// "^ft|^feat|^fx|^fix|^perf|^unk|BREAKING\'")
     pub grep: String,
     /// The format of the commit output from `git log` (Defaults to: "%H%n%s%n%b%n==END==")
     pub format: String,
@@ -184,6 +184,7 @@ impl Clog {
         let mut sections = HashMap::new();
         sections.insert("Features".to_owned(), vec!["ft".to_owned(), "feat".to_owned()]);
         sections.insert("Bug Fixes".to_owned(), vec!["fx".to_owned(), "fix".to_owned()]);
+        sections.insert("Performance".to_owned(), vec!["perf".to_owned()]);
         sections.insert("Unknown".to_owned(), vec!["unk".to_owned()]);
         sections.insert("Breaks".to_owned(), vec![]);
 
