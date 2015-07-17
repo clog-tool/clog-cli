@@ -32,7 +32,7 @@ impl SectionMap {
     ///
     /// // Open and prepend, or create the changelog file...
     /// let mut contents = String::new();
-    /// if let Some(ref file) = clog.changelog {
+    /// if let Some(ref file) = clog.outfile {
     ///     File::open(file).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
     ///     let mut file = File::create(file).ok().unwrap();
     ///

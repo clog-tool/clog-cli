@@ -1177,7 +1177,7 @@ impl Clog {
     /// let mut out_buf = io::BufWriter::new(out.lock());
     /// let mut writer = Markdown::new(&mut out_buf, &clog);
     ///
-    /// clog.write_changelog_with(&mut writer, None).unwrap_or_else(|e| {
+    /// clog.write_changelog_with(&mut writer).unwrap_or_else(|e| {
     ///     // Prints the error and exits appropriately
     ///     e.exit();
     /// });

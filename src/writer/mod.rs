@@ -23,7 +23,7 @@ use git::Commit;
 /// let out = io::stdout();
 /// let mut out_buf = io::BufWriter::new(out.lock());
 /// let mut writer = Markdown::new(&mut out_buf, &clog);
-/// clog.write_changelog_with(&mut writer, None).unwrap_or_else(|e| {
+/// clog.write_changelog_with(&mut writer).unwrap_or_else(|e| {
 ///     // Prints the error and exits appropriately
 ///     e.exit();
 /// });
@@ -50,7 +50,7 @@ pub type WriterResult = Result<(), Error>;
 ///
 /// // Open and prepend, or create the changelog file...
 /// let mut contents = String::new();
-/// if let Some(ref file) = clog.changelog {
+/// if let Some(ref file) = clog.outfile {
 ///     File::open(file).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
 ///     let mut file = File::create(file).ok().unwrap();
 ///
@@ -88,7 +88,7 @@ pub trait Writer {
     ///
     /// // Open and prepend, or create the changelog file...
     /// let mut contents = String::new();
-    /// if let Some(ref file) = clog.changelog {
+    /// if let Some(ref file) = clog.outfile {
     ///     File::open(file).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
     ///     let mut file = File::create(file).ok().unwrap();
     ///     // Write the header...
@@ -117,7 +117,7 @@ pub trait Writer {
     ///
     /// // Open and prepend, or create the changelog file...
     /// let mut contents = String::new();
-    /// if let Some(ref file) = clog.changelog {
+    /// if let Some(ref file) = clog.outfile {
     ///     File::open(file).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
     ///     let mut file = File::create(file).ok().unwrap();
     ///
