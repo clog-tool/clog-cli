@@ -1,9 +1,9 @@
-use std::collections::{HashMap, BTreeMap};
+use std::collections::HashMap;
 use std::convert::AsRef;
 use std::env;
 use std::fmt;
 use std::fs::File;
-use std::io::{stdout, BufWriter, Read};
+use std::io::{stdout, BufWriter, Write, Read};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -13,7 +13,7 @@ use toml::{Value, Parser};
 use semver;
 
 use git::{Commits, Commit};
-use writer::{Writer, WriterResult, Markdown};
+use fmt::{ChangelogFormat, FormatWriter, WriterResult, MarkdownWriter, JsonWriter};
 use sectionmap::SectionMap;
 use error::Error;
 
@@ -65,9 +65,9 @@ impl LinkStyle {
             "" => format!("(#{})", issue.as_ref()),
             link => {
                 match *self {
-                    LinkStyle::Github => format!("[#{}]({}/issues/{})", issue.as_ref(), link, issue.as_ref()),
-                    LinkStyle::Gitlab => format!("[#{}]({}/issues/{})", issue.as_ref(), link, issue.as_ref()),
-                    LinkStyle::Stash  => format!("(#{})", issue.as_ref()) // Stash doesn't support issue links
+                    LinkStyle::Github => format!("{}/issues/{}", link, issue.as_ref()),
+                    LinkStyle::Gitlab => format!("{}/issues/{}", link, issue.as_ref()),
+                    LinkStyle::Stash  => format!("{}", issue.as_ref()) // Stash doesn't support issue links
                 }
             }
         }
@@ -83,14 +83,13 @@ impl LinkStyle {
     /// assert_eq!("[#123abc89](https://github.com/thoughtram/clog/commit/123abc891234567890abcdefabc4567898724", commit);
     /// ```
     pub fn commit_link<S: AsRef<str>>(&self, hash: S, repo: S) -> String {
-        let short_hash = &hash.as_ref()[0..8];
         match repo.as_ref() {
-            "" => format!("({})", short_hash),
+            "" => format!("{}", &hash.as_ref()[0..8]),
             link => {
                 match *self {
-                    LinkStyle::Github => format!("[{}]({}/commit/{})", short_hash, link, hash.as_ref()),
-                    LinkStyle::Gitlab => format!("[{}]({}/commit/{})", short_hash, link, hash.as_ref()),
-                    LinkStyle::Stash  => format!("[{}]({}/commits/{})", short_hash, link, hash.as_ref())
+                    LinkStyle::Github => format!("{}/commit/{}", link, hash.as_ref()),
+                    LinkStyle::Gitlab => format!("{}/commit/{}", link, hash.as_ref()),
+                    LinkStyle::Stash  => format!("{}/commits/{}", link, hash.as_ref())
                 }
             }
         }
@@ -135,6 +134,8 @@ pub struct Clog {
     pub regex: Regex,
     /// The regex used to get closes issue links
     pub closes_regex: Regex, 
+    /// The format to output the changelog in (Defaults to Markdown)
+    pub out_format: ChangelogFormat,
 }
 
 impl fmt::Debug for Clog {
@@ -156,6 +157,7 @@ impl fmt::Debug for Clog {
             git_work_tree: {:?}
             regex: {:?}
             closes_regex: {:?}
+            out_format: {:?}
         }}",
         self.grep,
         self.format,
@@ -173,6 +175,7 @@ impl fmt::Debug for Clog {
         self.git_work_tree,
         self.regex,
         self.closes_regex,
+        self.out_format,
         ) 
     }
 }
@@ -208,6 +211,7 @@ impl Clog {
             infile: None,
             outfile: None,
             section_map: sections,
+            out_format: ChangelogFormat::Markdown,
             git_dir: None,
             git_work_tree: None,
             regex: regex!(r"^([^:\(]+?)(?:\(([^:\)]*?)?\))?:(.*)"),
@@ -382,6 +386,7 @@ impl Clog {
         let mut toml_outfile = None;
         let mut toml_infile = None;
         let mut toml_changelog = None;
+        let mut toml_format= None;
 
         if let Ok(ref mut toml_f) = File::open(cfg_file) {
             debugln!("Found file");
@@ -439,6 +444,10 @@ impl Clog {
                 Some(val) => Some(val.as_str().unwrap_or("").to_owned()),
                 None      => None
             };
+            toml_format = match clog_table.lookup("output-format") {
+                Some(val) => Some(val.as_str().unwrap_or("").to_owned()),
+                None      => None
+            };
             match toml_table.get("sections") {
                 Some(table) => {
                     match table.as_table() {
@@ -481,6 +490,13 @@ impl Clog {
 
         if let Some(infile) = toml_infile {
             self.infile = Some(infile);
+        }
+
+        if let Some(format) = toml_format {
+            match format.parse::<ChangelogFormat>() {
+                Ok(val) => self.out_format = val,
+                Err(..)  => return Err(Error::ConfigFormatErr),
+            }
         }
 
         if let Some(ref cl) = toml_changelog {
@@ -612,6 +628,10 @@ impl Clog {
         if let Some(file) = matches.value_of("changelog") {
             clog.infile = Some(file.to_owned());
             clog.outfile = Some(file.to_owned());
+        }
+
+        if matches.is_present("format") {
+            clog.out_format = value_t_or_exit!(matches.value_of("format"), ChangelogFormat);
         }
 
         debugln!("Returning clog:\n{:?}", clog);
@@ -872,6 +892,23 @@ impl Clog {
         self
     }
 
+    /// The format of output for the changelog (Defaults to Markdown)
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use clog::Clog;
+    /// # use clog::ChangelogFormat;
+    /// let mut clog = Clog::new().unwrap_or_else(|e| {
+    ///     e.exit();
+    /// });
+    /// 
+    /// clog.out_format(ChangelogFormat::Json);
+    /// ```
+    pub fn output_format(&mut self, f: ChangelogFormat) -> &mut Clog {
+        self.out_format = f;
+        self
+    }
+
     /// Retrieves a `Vec<Commit>` of only commits we care about.
     ///
     /// # Example
@@ -1084,9 +1121,16 @@ impl Clog {
             debugln!("outfile and infile not set using stdout");
             let out = stdout();
             let mut out_buf = BufWriter::new(out.lock());
-            let mut writer = Markdown::new(&mut out_buf, self);
-
-            self._write_changelog_with(&mut writer, None)
+            match self.out_format {
+                ChangelogFormat::Markdown => {
+                    let mut writer = MarkdownWriter::new(&mut out_buf);
+                    self.write_changelog_with(&mut writer)
+                },
+                ChangelogFormat::Json     => {
+                    let mut writer = JsonWriter::new(&mut out_buf);
+                    self.write_changelog_with(&mut writer)
+                }
+            }
         }
     }
 
@@ -1117,11 +1161,26 @@ impl Clog {
         contents.shrink_to_fit();
 
         if let Ok(mut file) = File::create(cl.as_ref()) {
-            let mut writer = Markdown::new(&mut file, self);
-            self._write_changelog_with(&mut writer, Some(&*contents))
+            {
+                match self.out_format {
+                    ChangelogFormat::Markdown => {
+                        let mut writer = MarkdownWriter::new(&mut file);
+                        try!(self.write_changelog_with(&mut writer));
+                    },
+                    ChangelogFormat::Json     => {
+                        let mut writer = JsonWriter::new(&mut file);
+                        try!(self.write_changelog_with(&mut writer));
+                    }
+                }
+            }
+            if let Err(..) = file.write(contents.as_bytes()) {
+                return Err(Error::WriteErr);
+            }
         } else {
-            Err(Error::CreateFileErr)
+            return Err(Error::CreateFileErr);
         }
+
+        Ok(())
     }
 
     /// Writes the changelog from a specified input file, and appends new commits 
@@ -1146,19 +1205,48 @@ impl Clog {
         if let Some(ref ofile) = self.outfile {
             debugln!("outfile set to: {:?}", ofile);
             if let Ok(mut file) = File::create(ofile) {
-                let mut writer = Markdown::new(&mut file, self);
-                self._write_changelog_with(&mut writer, Some(&*contents))
+                {
+                    match self.out_format {
+                        ChangelogFormat::Markdown => {
+                            let mut writer = MarkdownWriter::new(&mut file);
+                            try!(self.write_changelog_with(&mut writer));
+                        },
+                        ChangelogFormat::Json     => {
+                            let mut writer = JsonWriter::new(&mut file);
+                            try!(self.write_changelog_with(&mut writer));
+                        }
+                    }
+                }
+
+                if let Err(..) = file.write(contents.as_bytes()) {
+                    return Err(Error::WriteErr)
+                }
             } else {
-                Err(Error::CreateFileErr)
+                return Err(Error::CreateFileErr)
             }
         } else {
             debugln!("outfile not set, using stdout");
             let out = stdout();
             let mut out_buf = BufWriter::new(out.lock());
-            let mut writer = Markdown::new(&mut out_buf, self);
+            {
+                match self.out_format {
+                    ChangelogFormat::Markdown => {
+                        let mut writer = MarkdownWriter::new(&mut out_buf);
+                        try!(self.write_changelog_with(&mut writer));
+                    },
+                    ChangelogFormat::Json     => {
+                        let mut writer = JsonWriter::new(&mut out_buf);
+                        try!(self.write_changelog_with(&mut writer));
+                    }
+                }
+            }
 
-            self._write_changelog_with(&mut writer, Some(&*contents))
+            if let Err(..) = out_buf.write(contents.as_bytes()) {
+                return Err(Error::WriteErr);
+            }
         }
+
+        Ok(())
     }
 
     /// Writes a changelog with a specified `Writer` format and optional contents to append after
@@ -1184,41 +1272,11 @@ impl Clog {
     /// });
     /// ```
     pub fn write_changelog_with<W>(&self, writer: &mut W) -> WriterResult
-                                   where W: Writer {
+                                   where W: FormatWriter {
         debugln!("Writing changelog from writer");
-        let mut contents = String::with_capacity(256);
-        if let Some(ref infile) = self.infile {
-            debugln!("infile set to: {:?}", infile);
-            File::open(infile).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
-        } else {
-            debugln!("infile not set");
-        }
-        contents.shrink_to_fit();
-        self._write_changelog_with(writer, Some(&*contents))
-    }
-
-    // Does the actual changelog writing
-    fn _write_changelog_with<W>(&self, writer: &mut W, old: Option<&str>) -> WriterResult
-                                where W: Writer {
-        debugln!("Actually writing changelog");
-        if let Err(..) = writer.write_header() {
-            return Err(Error::WriteErr);
-        }
-
         let sm = SectionMap::from_commits(self.get_commits());
 
-        for (sec, secmap) in sm.sections {
-            try!(writer.write_section(&sec[..], &secmap.iter().collect::<BTreeMap<_,_>>()));
-        }
-
-        if let Some(s) = old {
-            debugln!("There are old contents to append");
-            if let Err(..) = writer.write(s) {
-                return Err(Error::WriteErr);
-            }
-        } else {
-            debugln!("No old contents to append");
-        }
+        try!(writer.write_changelog(self, &sm));
 
         Ok(())
     }

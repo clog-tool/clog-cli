@@ -1,12 +1,20 @@
-use std::collections::BTreeMap;
-use std::io;
+pub use self::md_writer::MarkdownWriter;
+pub use self::json_writer::JsonWriter;
 
-pub use self::markdown::Markdown;
+mod md_writer;
+mod json_writer;
 
-mod markdown;
-
+use clog::Clog;
 use error::Error;
-use git::Commit;
+use sectionmap::SectionMap;
+
+arg_enum! {
+    #[derive(Debug)]
+    pub enum ChangelogFormat {
+        Json,
+        Markdown
+    }
+}
 
 
 /// Convienience type for returning results of writing a changelog with a `Clog`
@@ -68,37 +76,8 @@ pub type WriterResult = Result<(), Error>;
 /// }
 ///
 /// ```
-pub trait Writer {
-    /// Writes the initial header inforamtion for a release
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// # use std::fs::File;
-    /// # use std::io::Read;
-    /// # use std::path::Path;
-    /// # use std::collections::BTreeMap;
-    /// # use clog::{Clog, SectionMap, Writer, Markdown};
-    /// let clog = Clog::new().unwrap_or_else(|e| { 
-    ///     e.exit();
-    /// });
-    ///
-    /// // Get the commits we're interested in...
-    /// let sm = SectionMap::from_commits(clog.get_commits());
-    ///
-    /// // Open and prepend, or create the changelog file...
-    /// let mut contents = String::new();
-    /// if let Some(ref file) = clog.outfile {
-    ///     File::open(file).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
-    ///     let mut file = File::create(file).ok().unwrap();
-    ///     // Write the header...
-    ///     let mut writer = Markdown::new(&mut file, &clog);
-    ///     writer.write_header().ok().expect("failed to write header");
-    /// }
-    /// ```
-    fn write_header(&mut self) -> io::Result<()>;
-
-    /// Writes a particular section of a changelog 
+pub trait FormatWriter {
+    /// Writes a particular a changelog in a particular format
     ///
     /// # Example
     ///
@@ -135,8 +114,5 @@ pub trait Writer {
     /// }
     ///
     /// ```
-    fn write_section(&mut self, title: &str, section: &BTreeMap<&String, &Vec<Commit>>) -> WriterResult;
-
-    /// Writes some contents to the `Write` writer object
-    fn write(&mut self, content: &str) -> io::Result<()>;
+    fn write_changelog(&mut self, options: &Clog, section_map: &SectionMap) -> WriterResult;
 }

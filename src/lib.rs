@@ -15,13 +15,13 @@ extern crate time;
 #[macro_use]
 mod macros;
 pub mod git;
-pub mod writer;
+pub mod fmt;
 mod sectionmap;
 mod clog;
 pub mod error;
 
 pub use clog::{Clog, LinkStyle};
-pub use writer::{Writer, Markdown};
+pub use fmt::{FormatWriter, MarkdownWriter, JsonWriter};
 pub use sectionmap::SectionMap;
 
 // The default config file

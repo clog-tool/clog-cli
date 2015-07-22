@@ -16,6 +16,7 @@ fn main () {
         .args_from_usage("-r, --repository=[repo]     'Repository used for generating commit and issue links{n}\
                                                        (without the .git, e.g. https://github.com/thoughtram/clog)'
                           -f, --from=[from]           'e.g. 12a8546'
+                          -T, --format=[format]       'The output format, defaults to markdown (valid values: markdown, json)'
                           -M, --major                 'Increment major version by one (Sets minor and patch to 0)'
                           -g, --git-dir=[gitdir]      'Local .git directory (defaults to current dir + \'.git\')*'
                           -w, --work-tree=[workdir]   'Local working tree of the git project (defaults to current dir)*' 
