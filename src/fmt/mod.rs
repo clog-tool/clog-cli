@@ -23,14 +23,14 @@ arg_enum! {
 /// # Example
 ///
 /// ```no_run
-/// # use clog::{Clog, Writer, Markdown};
+/// # use clog::{Clog, FormatWriter, MarkdownWriter};
 /// # use std::io;
 /// let clog = Clog::new().unwrap_or_else(|e| { 
 ///     e.exit();
 /// });
 /// let out = io::stdout();
 /// let mut out_buf = io::BufWriter::new(out.lock());
-/// let mut writer = Markdown::new(&mut out_buf, &clog);
+/// let mut writer = MarkdownWriter::new(&mut out_buf);
 /// clog.write_changelog_with(&mut writer).unwrap_or_else(|e| {
 ///     // Prints the error and exits appropriately
 ///     e.exit();
@@ -48,7 +48,7 @@ pub type WriterResult = Result<(), Error>;
 /// # use std::io::Read;
 /// # use std::path::Path;
 /// # use std::collections::BTreeMap;
-/// # use clog::{Clog, Markdown, Writer, SectionMap};
+/// # use clog::{Clog, MarkdownWriter, FormatWriter, SectionMap};
 /// let clog = Clog::new().unwrap_or_else(|e| { 
 ///     e.exit();
 /// });
@@ -63,16 +63,10 @@ pub type WriterResult = Result<(), Error>;
 ///     let mut file = File::create(file).ok().unwrap();
 ///
 ///     // Write the header...
-///     let mut writer = Markdown::new(&mut file, &clog);
-///     writer.write_header().ok().expect("failed to write header");
-///
-///     // Write the sections
-///     for (sec, secmap) in sm.sections {
-///         writer.write_section(&sec[..], &secmap.iter().collect::<BTreeMap<_,_>>()).ok().expect(&format!("failed to write {}", sec)[..]);
-///     }
-///
-///     // Write old changelog data last
-///     writer.write(&contents[..]).ok().expect("failed to write contents");
+///     let mut writer = MarkdownWriter::new(&mut file);
+///     clog.write_changelog_with(&mut writer).unwrap_or_else(|e| { 
+///         e.exit();
+///     });
 /// }
 ///
 /// ```
@@ -86,7 +80,7 @@ pub trait FormatWriter {
     /// # use std::io::Read;
     /// # use std::path::Path;
     /// # use std::collections::BTreeMap;
-    /// # use clog::{Clog, Markdown, Writer, SectionMap};
+    /// # use clog::{Clog, MarkdownWriter, FormatWriter, SectionMap};
     /// let clog = Clog::new().unwrap_or_else(|e| { 
     ///     e.exit();
     /// });
@@ -101,16 +95,10 @@ pub trait FormatWriter {
     ///     let mut file = File::create(file).ok().unwrap();
     ///
     ///     // Write the header...
-    ///     let mut writer = Markdown::new(&mut file, &clog);
-    ///     writer.write_header().ok().expect("failed to write header");
-    ///
-    ///     // Write the sections
-    ///     for (sec, secmap) in sm.sections {
-    ///         writer.write_section(&sec[..], &secmap.iter().collect::<BTreeMap<_,_>>()).ok().expect(&format!("failed to write {}", sec)[..]);
-    ///     }
-    ///
-    ///     // Write old changelog data last
-    ///     writer.write(&contents[..]).ok().expect("failed to write contents");
+    ///     let mut writer = MarkdownWriter::new(&mut file);
+    ///     clog.write_changelog_with(&mut writer).unwrap_or_else(|e| { 
+    ///         e.exit();
+    ///     });
     /// }
     ///
     /// ```

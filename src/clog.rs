@@ -902,7 +902,7 @@ impl Clog {
     ///     e.exit();
     /// });
     /// 
-    /// clog.out_format(ChangelogFormat::Json);
+    /// clog.output_format(ChangelogFormat::Json);
     /// ```
     pub fn output_format(&mut self, f: ChangelogFormat) -> &mut Clog {
         self.out_format = f;
@@ -1255,7 +1255,7 @@ impl Clog {
     /// # Examples
     ///
     /// ```no_run
-    /// # use clog::{Clog, Writer, Markdown};
+    /// # use clog::{Clog, FormatWriter, MarkdownWriter};
     /// # use std::io;
     /// let clog = Clog::new().unwrap_or_else(|e| { 
     ///     e.exit();
@@ -1264,7 +1264,7 @@ impl Clog {
     /// // Write changelog to stdout in Markdown format
     /// let out = io::stdout();
     /// let mut out_buf = io::BufWriter::new(out.lock());
-    /// let mut writer = Markdown::new(&mut out_buf, &clog);
+    /// let mut writer = MarkdownWriter::new(&mut out_buf);
     ///
     /// clog.write_changelog_with(&mut writer).unwrap_or_else(|e| {
     ///     // Prints the error and exits appropriately

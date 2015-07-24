@@ -22,7 +22,7 @@ impl SectionMap {
     /// # use std::io::Read;
     /// # use std::path::Path;
     /// # use std::collections::BTreeMap;
-    /// # use clog::{Clog, Writer, Markdown, SectionMap};
+    /// # use clog::{Clog, FormatWriter, MarkdownWriter, SectionMap};
     /// let clog = Clog::new().unwrap_or_else(|e| { 
     ///     e.exit();
     /// });
@@ -37,16 +37,10 @@ impl SectionMap {
     ///     let mut file = File::create(file).ok().unwrap();
     ///
     ///     // Write the header...
-    ///     let mut writer = Markdown::new(&mut file, &clog);
-    ///     writer.write_header().ok().expect("failed to write header");
-    ///
-    ///     // Write the sections
-    ///     for (sec, secmap) in sm.sections {
-    ///         writer.write_section(&sec[..], &secmap.iter().collect::<BTreeMap<_,_>>()).ok().expect(&format!("failed to write {}", sec)[..]);
-    ///     }
-    ///
-    ///     // Write old changelog data last
-    ///     writer.write(&contents[..]).ok().expect("failed to write contents");
+    ///     let mut writer = MarkdownWriter::new(&mut file);
+    ///     clog.write_changelog_with(&mut writer).unwrap_or_else(|e| { 
+    ///         e.exit();
+    ///     });
     /// }
     /// ```
     pub fn from_commits(commits: Vec<Commit>) -> SectionMap {
