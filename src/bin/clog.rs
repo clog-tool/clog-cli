@@ -16,16 +16,19 @@ fn main () {
         .args_from_usage("-r, --repository=[repo]     'Repository used for generating commit and issue links{n}\
                                                        (without the .git, e.g. https://github.com/thoughtram/clog)'
                           -f, --from=[from]           'e.g. 12a8546'
-                          -T, --format=[format]       'The output format, defaults to markdown (valid values: markdown, json)'
+                          -T, --format=[format]       'The output format, defaults to markdown{n}\
+                                                       (valid values: markdown, json)'
                           -M, --major                 'Increment major version by one (Sets minor and patch to 0)'
                           -g, --git-dir=[gitdir]      'Local .git directory (defaults to current dir + \'.git\')*'
-                          -w, --work-tree=[workdir]   'Local working tree of the git project (defaults to current dir)*' 
+                          -w, --work-tree=[workdir]   'Local working tree of the git project{n}\
+                                                       (defaults to current dir)*' 
                           -m, --minor                 'Increment minor version by one (Sets patch to 0)'
                           -p, --patch                 'Increment patch version by one'
                           -s, --subtitle=[subtitle]   'e.g. \"Crazy Release Title\"'
                           -t, --to=[to]               'e.g. 8057684 (Defaults to HEAD when omitted)'
                           -o, --outfile=[outfile]     'Where to write the changelog (Defaults to stdout when omitted)'
-                          -c, --config=[config]       'The Clog Configuration TOML file to use (Defaults to \'.clog.toml\')**'
+                          -c, --config=[config]       'The Clog Configuration TOML file to use (Defaults to{n}\
+                                                       \'.clog.toml\')**'
                           -i, --infile=[infile]       'A changelog to append to, but *NOT* write to (Useful in{n}\
                                                        conjunction with --outfile)'
                           --setversion=[ver]          'e.g. 1.0.1'")
@@ -39,9 +42,9 @@ fn main () {
             .possible_values(&styles))
         // Because no one should use --changelog and either an --infile or --outfile, we add those
         // to conflicting lists
-        .arg(Arg::from_usage("-C, --changelog=[changelog] 'A previous changelog to prepend new changes to (this is like using{n}\
-                                                           the same file for both --infile and --outfile and should not be{n}\
-                                                           used in conjuction with either)'")
+        .arg(Arg::from_usage("-C, --changelog=[changelog] 'A previous changelog to prepend new changes to (this is like{n}\
+                                                           using the same file for both --infile and --outfile and{n}\
+                                                           should not be used in conjuction with either)'")
             .conflicts_with("infile")
             .conflicts_with("outfile"))
         // Since --setversion shouldn't be used with any of the --major, --minor, or --match, we

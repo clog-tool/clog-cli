@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["MarkdownWriter","Wraps a `std::io::Write` object to write `clog` output in a Markdown format"]]});

@@ -26,16 +26,17 @@ use CLOG_CONFIG_FILE;
 /// ```no_run
 /// # use clog::Clog;
 /// let clog = Clog::new().unwrap_or_else(|e| {
-///     // Prints the error and exits appropriately
+///     // Prints the BuilderResult error and exits appropriately
 ///     e.exit();
 /// });
 /// ```
 pub type BuilderResult = Result<Clog, Error>;
 
 
-/// Determines the link style used in commit links. Defaults to `LinksStyle::Github`
+/// Determines the hyperlink style used in commit and issue links. Defaults to `LinksStyle::Github`
 ///
 /// # Example
+///
 /// ```no_run
 /// # use clog::{LinkStyle, Clog};
 /// let mut clog = Clog::new().unwrap();
@@ -51,18 +52,20 @@ arg_enum!{
 }
 
 impl LinkStyle {
-    /// Gets a link to an issue in the specified format.
+    /// Gets a hyperlink url to an issue in the specified format.
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::{LinkStyle, Clog};
     /// let link = LinkStyle::Github;
     /// let issue = link.issue_link("141", "https://github.com/thoughtram/clog");
-    /// assert_eq!("[#141](https://github.com/thoughtram/clog/issues/141", issue);
+    ///
+    /// assert_eq!("https://github.com/thoughtram/clog/issues/141", issue);
     /// ```
     pub fn issue_link<S: AsRef<str>>(&self, issue: S, repo: S) -> String {
         match repo.as_ref() {
-            "" => format!("(#{})", issue.as_ref()),
+            "" => format!("{}", issue.as_ref()),
             link => {
                 match *self {
                     LinkStyle::Github => format!("{}/issues/{}", link, issue.as_ref()),
@@ -73,14 +76,15 @@ impl LinkStyle {
         }
     }
 
-    /// Gets a link to an commit in the specified format.
+    /// Gets a hyperlink url to a commit in the specified format.
     ///
     /// # Example
     /// ```no_run
     /// # use clog::{LinkStyle, Clog};
     /// let link = LinkStyle::Github;
     /// let commit = link.commit_link("123abc891234567890abcdefabc4567898724", "https://github.com/thoughtram/clog");
-    /// assert_eq!("[#123abc89](https://github.com/thoughtram/clog/commit/123abc891234567890abcdefabc4567898724", commit);
+    ///
+    /// assert_eq!("https://github.com/thoughtram/clog/commit/123abc891234567890abcdefabc4567898724", commit);
     /// ```
     pub fn commit_link<S: AsRef<str>>(&self, hash: S, repo: S) -> String {
         match repo.as_ref() {
@@ -223,9 +227,11 @@ impl Clog {
     /// default `.clog.toml` configuration file.
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let clog = Clog::new().unwrap_or_else(|e| {
+    ///     // Prints the error to stderr and exits
     ///     e.exit();
     /// });
     /// ```
@@ -239,6 +245,7 @@ impl Clog {
     /// well as a custom named TOML configuration file.
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let clog = Clog::with_all("/myproject/.git",
@@ -264,6 +271,7 @@ impl Clog {
     /// vice versa.
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let clog = Clog::with_dir_and_file("/myproject",
@@ -307,6 +315,7 @@ impl Clog {
     /// vice versa.
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let clog = Clog::with_dir("/myproject").unwrap_or_else(|e| {
@@ -326,6 +335,7 @@ impl Clog {
     /// vice versa.
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let clog = Clog::with_dirs("/myproject", "/myproject/.git").unwrap_or_else(|e| {
@@ -350,6 +360,7 @@ impl Clog {
     /// vice versa.
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let clog = Clog::from_file("/myproject/clog_conf.toml").unwrap_or_else(|e| {
@@ -377,6 +388,7 @@ impl Clog {
         Clog::with_dir_and_file(dir, cfg_file)
     }
 
+    // Try and create a clog object from a config file
     fn try_config_file(mut self, cfg_file: &Path) -> BuilderResult {
         debugln!("Trying to use config file: {:?}", cfg_file);
         let mut toml_from_latest = None;
@@ -642,6 +654,7 @@ impl Clog {
     /// Sets the grep search pattern for finding commits.
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
@@ -658,6 +671,7 @@ impl Clog {
     /// Sets the format for `git log` output
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
@@ -678,6 +692,7 @@ impl Clog {
     /// **NOTE:** Anything set here will override anything in a configuration TOML file
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
@@ -696,6 +711,7 @@ impl Clog {
     /// **NOTE:** Anything set here will override anything in a configuration TOML file
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::{Clog, LinkStyle};
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
@@ -714,6 +730,7 @@ impl Clog {
     /// **NOTE:** Anything set here will override anything in a configuration TOML file
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
@@ -730,6 +747,7 @@ impl Clog {
     /// Sets the subtitle for the release
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
@@ -748,6 +766,7 @@ impl Clog {
     /// **NOTE:** Anything set here will override anything in a configuration TOML file
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
@@ -765,6 +784,7 @@ impl Clog {
     /// `HEAD`)
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
@@ -783,6 +803,7 @@ impl Clog {
     /// **NOTE:** Anything set here will override anything in a configuration TOML file
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
@@ -806,6 +827,7 @@ impl Clog {
     /// **NOTE:** This should *not* be used in conjunction with `Clog::changelog()`
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
@@ -828,6 +850,7 @@ impl Clog {
     /// **NOTE:** This should *not* be used in conjunction with `Clog::changelog()`
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
@@ -844,6 +867,7 @@ impl Clog {
     /// Sets the `git` metadata directory (typically `.git` child of your project working tree)
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
@@ -860,6 +884,7 @@ impl Clog {
     /// Sets the `git` working tree directory (typically your project directory)
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
@@ -879,6 +904,7 @@ impl Clog {
     /// heading
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
@@ -895,9 +921,10 @@ impl Clog {
     /// The format of output for the changelog (Defaults to Markdown)
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
-    /// # use clog::ChangelogFormat;
+    /// # use clog::fmt::ChangelogFormat;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
     ///     e.exit();
     /// });
@@ -912,6 +939,7 @@ impl Clog {
     /// Retrieves a `Vec<Commit>` of only commits we care about.
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
@@ -976,6 +1004,7 @@ impl Clog {
     /// Retrieves the latest tag from the git directory
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
@@ -1000,6 +1029,7 @@ impl Clog {
     /// Retrieves the latest tag version from the git directory
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
@@ -1023,6 +1053,7 @@ impl Clog {
     /// Retrieves the hash of the most recent commit from the git directory (i.e. HEAD)
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
@@ -1078,6 +1109,7 @@ impl Clog {
     /// Retrieves the section title for a given alias
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
@@ -1098,9 +1130,10 @@ impl Clog {
                                                    .unwrap())
     }
 
-    /// Writes the changelog using whatever options have been specified thus var.
+    /// Writes the changelog using whatever options have been specified thus far.
     ///
     /// # Example
+    ///
     /// ```no_run
     /// # use clog::Clog;
     /// let mut clog = Clog::new().unwrap_or_else(|e| {
@@ -1249,13 +1282,13 @@ impl Clog {
         Ok(())
     }
 
-    /// Writes a changelog with a specified `Writer` format and optional contents to append after
-    /// writing such as the previous changelog
+    /// Writes a changelog with a specified `FormatWriter` format 
     ///
     /// # Examples
     ///
     /// ```no_run
-    /// # use clog::{Clog, FormatWriter, MarkdownWriter};
+    /// # use clog::Clog;
+    /// # use clog::fmt::{FormatWriter, MarkdownWriter};
     /// # use std::io;
     /// let clog = Clog::new().unwrap_or_else(|e| { 
     ///     e.exit();

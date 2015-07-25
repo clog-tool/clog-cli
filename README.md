@@ -70,7 +70,7 @@ $ source ~/.bashrc
 
 On Windows 7/8 you can add directory to the `PATH` variable by opening a command line as an administrator and running
 
-```
+```sh
 C:\> setx path "%path%;C:\path\to\clog\binary"
 ```
 Otherwise, ensure you have the `clog` binary in the directory which you operating in the command line from, because Windows automatically adds your current directory to PATH (i.e. if you open a command line to `C:\my_project\` to use `clog` ensure `clog.exe` is inside that directory as well).
@@ -92,10 +92,13 @@ FLAGS:
     -V, --version            Prints version information
 
 OPTIONS:
-    -C, --changelog <changelog>    A previous changelog to prepend new changes to (this is like using
-                                   the same file for both --infile and --outfile and should not be
-                                   used in conjuction with either)
-    -c, --config <config>          The Clog Configuration TOML file to use (Defaults to '.clog.toml')**
+    -C, --changelog <changelog>    A previous changelog to prepend new changes to (this is like
+                                   using the same file for both --infile and --outfile and
+                                   should not be used in conjuction with either)
+    -c, --config <config>          The Clog Configuration TOML file to use (Defaults to
+                                   '.clog.toml')**
+    -T, --format <format>          The output format, defaults to markdown
+                                   (valid values: markdown, json)
     -f, --from <from>              e.g. 12a8546
     -g, --git-dir <gitdir>         Local .git directory (defaults to current dir + '.git')*
     -i, --infile <infile>          A changelog to append to, but *NOT* write to (Useful in
@@ -108,7 +111,8 @@ OPTIONS:
     -s, --subtitle <subtitle>      e.g. "Crazy Release Title"
     -t, --to <to>                  e.g. 8057684 (Defaults to HEAD when omitted)
         --setversion <ver>         e.g. 1.0.1
-    -w, --work-tree <workdir>      Local working tree of the git project (defaults to current dir)*
+    -w, --work-tree <workdir>      Local working tree of the git project
+                                   (defaults to current dir)*
 
 * If your .git directory is a child of your project directory (most common, such as
 /myproject/.git) AND not in the current working directory (i.e you need to use --work-tree or
@@ -150,7 +154,7 @@ In order to see it in action, you'll need a repository that already has some of 
 
  1. Clone the `clog` repository (we will clone to our home directory to make things simple, feel free to change it)
 
-```
+```sh
 $ git clone https://github.com/thoughtram/clog ~/clog
 ```
 
@@ -233,6 +237,10 @@ outfile = "MyChangelog.md"
 # This is useful in conjunction with the outfile field where you may wish to read
 # from one file and append that data to the clog output in another
 infile = "My_old_changelog.md"
+
+# This sets the output format. There are two options "json" or "markdown" and 
+# defaults to "markdown" when omitted
+output-format = "json"
 
 # If you use tags, you can set the following if you wish to only pick
 # up changes since your latest tag

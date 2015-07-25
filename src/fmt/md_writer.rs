@@ -9,16 +9,14 @@ use error::Error;
 use fmt::{FormatWriter, WriterResult};
 use sectionmap::SectionMap;
 
-/// Writes commits to a specified `Write` object in Markdown format
+/// Wraps a `std::io::Write` object to write `clog` output in a Markdown format
 ///
 /// # Example
 ///
 /// ```no_run
 /// # use std::fs::File;
-/// # use std::io::Read;
-/// # use std::path::Path;
-/// # use std::collections::BTreeMap;
-/// # use clog::{Clog, MarkdownWriter, FormatWriter, SectionMap};
+/// # use clog::{SectionMap, Clog};
+/// # use clog::fmt::MarkdownWriter;
 /// let clog = Clog::new().unwrap_or_else(|e| { 
 ///     e.exit();
 /// });
@@ -26,24 +24,39 @@ use sectionmap::SectionMap;
 /// // Get the commits we're interested in...
 /// let sm = SectionMap::from_commits(clog.get_commits());
 ///
-/// // Open and prepend, or create the changelog file...
-/// let mut contents = String::new();
-/// if let Some(ref file) = clog.outfile {
-///     File::open(file).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
-///     let mut file = File::create(file).ok().unwrap();
+/// // Create a file to hold our results, which the MardownWriter will wrap (note, .unwrap() is only
+/// // used to keep the example short and concise)
+/// let mut file = File::create("my_changelog.md").ok().unwrap();
 ///
-///     // Write the header...
-///     let mut writer = MarkdownWriter::new(&mut file);
-///     writer.write_changelog(&clog, &sm).ok().expect("failed to write header");
-/// }
-///
+/// // Create the MarkdownWriter
+/// let mut writer = MarkdownWriter::new(&mut file);
+/// 
+/// // Use the MarkdownWriter to write the changelog
+/// clog.write_changelog_with(&mut writer).unwrap_or_else(|e| { 
+///     e.exit();
+/// });
 /// ```
 pub struct MarkdownWriter<'a>(&'a mut io::Write);
 
 
 impl<'a> MarkdownWriter<'a> {
-    /// Creates a new instance of the `Markdown` struct using a `Write` object and a `Clog` object
-    /// as the configuration options to use while writing.
+    /// Creates a new instance of the `MarkdownWriter` struct using a `std::io::Write` object.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use std::io::{stdout, BufWriter};
+    /// # use clog::Clog;
+    /// # use clog::fmt::MarkdownWriter;
+    /// let clog = Clog::new().unwrap_or_else(|e| { 
+    ///     e.exit();
+    /// });
+    ///
+    /// // Create a MarkdownWriter to wrap stdout
+    /// let out = stdout();
+    /// let mut out_buf = BufWriter::new(out.lock());
+    /// let mut writer = MarkdownWriter::new(&mut out_buf);
+    /// ```
     pub fn new<T: io::Write + 'a>(writer: &'a mut T) -> MarkdownWriter<'a> {
         MarkdownWriter(writer)
     }

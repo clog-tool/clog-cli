@@ -21,7 +21,6 @@ mod clog;
 pub mod error;
 
 pub use clog::{Clog, LinkStyle};
-pub use fmt::{FormatWriter, MarkdownWriter, JsonWriter, ChangelogFormat};
 pub use sectionmap::SectionMap;
 
 // The default config file

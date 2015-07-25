@@ -19,10 +19,8 @@ impl SectionMap {
     ///
     /// ```no_run
     /// # use std::fs::File;
-    /// # use std::io::Read;
-    /// # use std::path::Path;
-    /// # use std::collections::BTreeMap;
-    /// # use clog::{Clog, FormatWriter, MarkdownWriter, SectionMap};
+    /// # use clog::{Clog, SectionMap};
+    /// # use clog::fmt::{FormatWriter, MarkdownWriter};
     /// let clog = Clog::new().unwrap_or_else(|e| { 
     ///     e.exit();
     /// });
@@ -30,18 +28,17 @@ impl SectionMap {
     /// // Get the commits we're interested in...
     /// let sm = SectionMap::from_commits(clog.get_commits());
     ///
-    /// // Open and prepend, or create the changelog file...
-    /// let mut contents = String::new();
-    /// if let Some(ref file) = clog.outfile {
-    ///     File::open(file).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
-    ///     let mut file = File::create(file).ok().unwrap();
+    /// // Create a file to hold our results, which the MardownWriter will wrap (note, .unwrap() is only
+    /// // used to keep the example short and concise)
+    /// let mut file = File::create("my_changelog.md").ok().unwrap();
     ///
-    ///     // Write the header...
-    ///     let mut writer = MarkdownWriter::new(&mut file);
-    ///     clog.write_changelog_with(&mut writer).unwrap_or_else(|e| { 
-    ///         e.exit();
-    ///     });
-    /// }
+    /// // Create the MarkdownWriter
+    /// let mut writer = MarkdownWriter::new(&mut file);
+    /// 
+    /// // Use the MarkdownWriter to write the changelog
+    /// clog.write_changelog_with(&mut writer).unwrap_or_else(|e| { 
+    ///     e.exit();
+    /// });
     /// ```
     pub fn from_commits(commits: Vec<Commit>) -> SectionMap {
         let mut sm = SectionMap {

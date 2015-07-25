@@ -10,16 +10,14 @@ use fmt::{FormatWriter, WriterResult};
 use sectionmap::SectionMap;
 
 
-/// Writes commits to a specified `Write` object in Markdown format
+/// Wraps a `std::io::Write` object to write `clog` output in a JSON format
 ///
 /// # Example
 ///
 /// ```no_run
 /// # use std::fs::File;
-/// # use std::io::Read;
-/// # use std::path::Path;
-/// # use std::collections::BTreeMap;
-/// # use clog::{Clog, JsonWriter, FormatWriter, SectionMap};
+/// # use clog::{SectionMap, Clog};
+/// # use clog::fmt::JsonWriter;
 /// let clog = Clog::new().unwrap_or_else(|e| { 
 ///     e.exit();
 /// });
@@ -27,40 +25,38 @@ use sectionmap::SectionMap;
 /// // Get the commits we're interested in...
 /// let sm = SectionMap::from_commits(clog.get_commits());
 ///
-/// // Open and prepend, or create the changelog file...
-/// let mut contents = String::new();
-/// if let Some(ref file) = clog.outfile {
-///     File::open(file).map(|mut f| f.read_to_string(&mut contents).ok()).ok();
-///     let mut file = File::create(file).ok().unwrap();
+/// // Create a file to hold our results, which the JsonWriter will wrap (note, .unwrap() is only
+/// // used to keep the example short and concise)
+/// let mut file = File::create("my_changelog.json").ok().unwrap();
 ///
-///     // Write the header...
-///     let mut writer = JsonWriter::new(&mut file);
-///     clog.write_changelog_with(&mut writer).unwrap_or_else(|e| { 
-///         e.exit();
-///     });
-/// }
-///
+/// // Create the JSON Writer
+/// let mut writer = JsonWriter::new(&mut file);
+/// 
+/// // Use the JsonWriter to write the changelog
+/// clog.write_changelog_with(&mut writer).unwrap_or_else(|e| { 
+///     e.exit();
+/// });
 /// ```
 pub struct JsonWriter<'a>(&'a mut io::Write);
 
 
 impl<'a> JsonWriter<'a> {
-    /// Creates a new instance of the `Markdown` struct using a `Write` object and a `Clog` object
-    /// as the configuration options to use while writing.
+    /// Creates a new instance of the `JsonWriter` struct using a `std::io::Write` object.
     ///
     /// # Example
     ///
     /// ```no_run
     /// # use std::io::{stdout, BufWriter};
-    /// # use clog::{Clog, MarkdownWriter};
+    /// # use clog::Clog;
+    /// # use clog::fmt::JsonWriter;
     /// let clog = Clog::new().unwrap_or_else(|e| { 
     ///     e.exit();
     /// });
     ///
-    /// // Create a Markdown writer to wrap stdout
+    /// // Create a JsonWriter to wrap stdout
     /// let out = stdout();
     /// let mut out_buf = BufWriter::new(out.lock());
-    /// let mut writer = MarkdownWriter::new(&mut out_buf);
+    /// let mut writer = JsonWriter::new(&mut out_buf);
     /// ```
     pub fn new<T: io::Write>(writer: &'a mut T) -> JsonWriter<'a> {
         JsonWriter(writer)
@@ -70,14 +66,14 @@ impl<'a> JsonWriter<'a> {
 impl<'a> JsonWriter<'a> {
     /// Writes the initial header inforamtion for a release
     fn write_header(&mut self, options: &Clog) -> io::Result<()> {
-        write!(self.0, "\"header\":{{\"version\":{:?},\"patch_version\":{:?},\"subtitle\":{},",
+        try!(write!(self.0, "\"header\":{{\"version\":{:?},\"patch_version\":{:?},\"subtitle\":{},",
             options.version,
             options.patch_ver,
             match options.subtitle.len() {
                 0 => "null".to_owned(),
                 _ => format!("{:?}", &*options.subtitle)
             }
-        ).unwrap();
+        ));
 
         let date = time::now_utc();
 

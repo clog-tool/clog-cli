@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["JsonWriter","Wraps a `std::io::Write` object to write `clog` output in a JSON format"]]});
