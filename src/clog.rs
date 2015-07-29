@@ -1206,6 +1206,10 @@ impl Clog {
                     }
                 }
             }
+            if let Err(..) = write!(&mut file, "\n\n\n") {
+                return Err(Error::WriteErr);
+            }
+
             if let Err(..) = file.write(contents.as_bytes()) {
                 return Err(Error::WriteErr);
             }
@@ -1272,6 +1276,9 @@ impl Clog {
                         try!(self.write_changelog_with(&mut writer));
                     }
                 }
+            }
+            if let Err(..) = write!(&mut out_buf, "\n\n\n") {
+                return Err(Error::WriteErr);
             }
 
             if let Err(..) = out_buf.write(contents.as_bytes()) {
