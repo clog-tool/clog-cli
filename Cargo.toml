@@ -8,6 +8,7 @@ name = "clog"
 version = "0.8.2"
 authors = ["Christoph Burgdorf <christoph.burgdorf@bvsn.org>"]
 description = "A conventional changelog for the rest of us"
+exclude = ["docs/*"]
 
 [[bin]]
 doc = false
