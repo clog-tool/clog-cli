@@ -1,9 +1,9 @@
-clog
+clog-cli
 ====
 
 [![Join the chat at https://gitter.im/thoughtram/clog](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/thoughtram/clog?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-[![Build Status](https://travis-ci.org/thoughtram/clog.png?branch=master)](https://travis-ci.org/thoughtram/clog)
+[![Build Status](https://travis-ci.org/clog-tool/clog-cli.png?branch=master)](https://travis-ci.org/clog-tool/clog-cli)
 
 A [conventional][convention] changelog for the rest of us
 
@@ -11,16 +11,15 @@ A [conventional][convention] changelog for the rest of us
 
 ## About
 
-`clog` creates a changelog automatically from your local git metadata. See the `clog`s [changelog.md](https://github.com/thoughtram/clog/blob/master/changelog.md) for an example.
+`clog` creates a changelog automatically from your local git metadata. See the `clog`s [changelog.md](https://github.com/clog-tool/clog-cli/blob/master/changelog.md) for an example.
 
-The way this works, is every time you make a commit, you ensure your commit subject line follows the [conventional](https://github.com/thoughtram/clog/blob/master/changelog.md) format. Then when you wish to update your changelog, you simply run `clog` inside your local repository with any options you'd like to specify.
+The way this works, is every time you make a commit, you ensure your commit subject line follows the [conventional](https://github.com/ajoslin/conventional-changelog/blob/a5505865ff3dd710cf757f50530e73ef0ca641da/conventions/angular.md) format. Then when you wish to update your changelog, you simply run `clog` inside your local repository with any options you'd like to specify.
 
 *NOTE:* `clog` also supports empty components by making commit messages such as `alias: message` or `alias(): message` (i.e. without the component)
 
-
 ## Usage
 
-There are two ways to use `clog`, as a binary via the command line or as a library in your applicaitons.
+There are two ways to use `clog`, as a binary via the command line or as a library in your applicaitons via [clog-lib](https://github.com/clog-tool/clog-lib).
 
 ### Binary (Command Line)
 
@@ -31,7 +30,7 @@ In order to use `clog` via the command line you must first obtain a binary by ei
 Follow these instructions to compile `clog`, then skip down to Installation.
 
  1. Ensure you have current version of `cargo` and [Rust](https://www.rust-lang.org) installed
- 2. Clone the project `$ git clone https://github.com/thoughtram/clog && cd clog`
+ 2. Clone the project `$ git clone https://github.com/clog-tool/clog-cli && cd clog-cli`
  3. Build the project `$ cargo build --release`
  4. Once complete, the binary will be located at `target/release/clog`
 
@@ -75,6 +74,7 @@ On Windows 7/8 you can add directory to the `PATH` variable by opening a command
 ```sh
 C:\> setx path "%path%;C:\path\to\clog\binary"
 ```
+
 Otherwise, ensure you have the `clog` binary in the directory which you operating in the command line from, because Windows automatically adds your current directory to PATH (i.e. if you open a command line to `C:\my_project\` to use `clog` ensure `clog.exe` is inside that directory as well).
 
 #### Using clog from the Command Line
@@ -107,7 +107,7 @@ OPTIONS:
                                    conjunction with --outfile)
     -o, --outfile <outfile>        Where to write the changelog (Defaults to stdout when omitted)
     -r, --repository <repo>        Repository used for generating commit and issue links
-                                   (without the .git, e.g. https://github.com/thoughtram/clog)
+                                   (without the .git, e.g. https://github.com/clog-tool/clog-cli)
     -l, --link-style <style>       The style of repository link to generate
                                    (Defaults to github) [values: Github Gitlab Stash]
     -s, --subtitle <subtitle>      e.g. "Crazy Release Title"
@@ -118,7 +118,7 @@ OPTIONS:
 
 * If your .git directory is a child of your project directory (most common, such as
 /myproject/.git) AND not in the current working directory (i.e you need to use --work-tree or
---git-dir) you only need to specify either the --work-tree (i.e. /myproject) OR --git-dir (i.e. 
+--git-dir) you only need to specify either the --work-tree (i.e. /myproject) OR --git-dir (i.e.
 /myproject/.git), you don't need to use both.
 
 ** If using the --config to specify a clog configuration TOML file NOT in the current working
@@ -130,75 +130,25 @@ project directory (i.e. /myproject/.clog.toml) you do not need to use --work-tre
 
 In order to see it in action, you'll need a repository that already has some of those specially crafted commit messages in it's history. For this, we'll use the `clog` repository itself.
 
-1. Clone the repo `git clone https://github.com/thoughtram/clog && cd clog`
+1. Clone the repo `git clone https://github.com/clog-tool/clog-cli && cd clog-cli`
 
 2. Ensure you already `clog` binary from any of the steps above
 
-4. There are many, many ways to run `clog`. Note, in these examples we will be typing the same options over and over again, in times like that we could a [clog TOML configuration file](https://github.com/thoughtram/clog#default-options) to specify those options that don't normally change. Also note, all these CLI options have short versions as well, we're using the long version because they're easier to understand. 
+4. There are many, many ways to run `clog`. Note, in these examples we will be typing the same options over and over again, in times like that we could a [clog TOML configuration file](https://github.com/clog-tool/clog-cli#default-options) to specify those options that don't normally change. Also note, all these CLI options have short versions as well, we're using the long version because they're easier to understand.
  a. Let's start by picking up only new commits since our last release (this may not be a lot...or none)
- b. Run `clog -r https://github.com/thoughtram/clog --outfile only_new.md`
+ b. Run `clog -r https://github.com/clog-tool/clog-cli --outfile only_new.md`
  c. By default, `clog` outputs to `stdout` unless you have a file set inside a TOML configuration file. (Note, we could have used the shell `>` operator instead of `--outfile`)
  d. Anything options you set via the CLI will override anything you set the configuration file.
  e. Let's now tell `clog` where it can find our old changelog, and prepend any new commits to that old data
- f. Run `clog -r https://github.com/thoughtram/clog --infile changelog.md --outfile new_combined.md`
+ f. Run `clog -r https://github.com/clog-tool/clog-cli --infile changelog.md --outfile new_combined.md`
  g. Finally, let's assume like most projects we just want to use one file, and prepend all new data to our old changelog (most useful)
  h. First make a backup of the `changelog.md` so you can compare it later `cp changelog.md changelog.md.bak`
- i. Run `clog -r https://github.com/thoughtram/clog --changelog changelog.md`
+ i. Run `clog -r https://github.com/clog-tool/clog-cli --changelog changelog.md`
  j. Try viewing any of the `only_new.md`, `new_combined.md`, `changelog.md.bak`, or `changelog.md` in your favorite markdown viewer to compare them.
 
 ### As a Library
 
-See the documentation for information on using `clog` in your applications.
-
-#### Try it!
-
-In order to see it in action, you'll need a repository that already has some of those specially crafted commit messages in it's history. For this, we'll use the `clog` repository itself.
-
- 1. Clone the `clog` repository (we will clone to our home directory to make things simple, feel free to change it)
-
-```sh
-$ git clone https://github.com/thoughtram/clog ~/clog
-```
-
- 2. Add `clog` as a dependency in your `Cargo.toml` 
-
-```toml
-[dependencies]
-clog = "*"
-```
-
- 3. Use the following in your `src/main.rs`
-
-```rust
-extern crate clog;
-
-use clog::Clog;
-
-fn main() {
-    // Create the struct
-    let mut clog = Clog::with_dir("~/clog").unwrap_or_else(|e| { 
-        // Prints the error message and exits
-        e.exit();
-    });
-
-    // Set some options
-    clog.repository("https://github.com/thoughtram/clog")
-        .subtitle("Crazy Dog")
-        .changelog("changelog.md")
-        .from("6d8183f")
-        .version("0.1.0");
-
-    // Write the changelog to the current working directory
-    //
-    // Alternatively we could have used .write_changelog_to("/somedir/some_file.md")
-    clog.write_changelog().unwrap_or_else(|e| {
-        e.exit();
-    });
-}
-```
-
- 4. Compile and run `$ cargo build --release && ./target/release/bin_name
- 5. View the output in your favorite markdown viewer! `$ vim changelog.md`
+See the [documentation](http://clog-tool.github.io/clog-lib/) or [clog-lib](https://github.com/clog-tool/clog-lib) for information on using `clog` in your applications. You can also see the [clog crates.io page](https://crates.io/crates/clog).
 
 ### Default Options
 
@@ -208,7 +158,7 @@ fn main() {
 [clog]
 # A repository link with the trailing '.git' which will be used to generate
 # all commit and issue links
-repository = "https://github.com/thoughtram/clog"
+repository = "https://github.com/clog-tool/clog-cli"
 # A constant release title
 subtitle = "my awesome title"
 
@@ -216,7 +166,7 @@ subtitle = "my awesome title"
 link-style = "github"
 
 # The preferred way to set a constant changelog. This file will be read for old changelog
-# data, then prepended to for new changelog data. It's the equivilant to setting 
+# data, then prepended to for new changelog data. It's the equivilant to setting
 # both infile and outfile to the same file.
 #
 # Do not use with outfile or infile fields!
@@ -240,7 +190,7 @@ outfile = "MyChangelog.md"
 # from one file and append that data to the clog output in another
 infile = "My_old_changelog.md"
 
-# This sets the output format. There are two options "json" or "markdown" and 
+# This sets the output format. There are two options "json" or "markdown" and
 # defaults to "markdown" when omitted
 output-format = "json"
 
@@ -272,4 +222,4 @@ Now if you make a commit message such as `mysec(Component): some message` or `ms
 
 ## LICENSE
 
-clog is licensed under the MIT Open Source license. For more information, see the LICENSE file in this repository.
+`clog` is licensed under the MIT Open Source license. For more information, see the LICENSE file in this repository.
