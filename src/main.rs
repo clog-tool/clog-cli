@@ -3,6 +3,8 @@ extern crate clap;
 extern crate time;
 extern crate clog;
 extern crate semver;
+#[cfg(feature = "color")]
+extern crate ansi_term;
 
 use clap::{App, Arg, ArgGroup, ArgMatches};
 

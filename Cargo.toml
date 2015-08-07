@@ -22,8 +22,14 @@ clog = {git = "https://github.com/clog-tool/clog-lib"}
 version = "*"
 optional = true
 
+[dependencies.ansi_term]
+version = "*"
+optional = true
+
 [features]
-default = []
+default = ["color"]
+
+color = ["ansi_term"]
 
 # For debugging output
 debug = []
