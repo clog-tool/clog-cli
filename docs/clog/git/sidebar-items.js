@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["Commit","The struct representation of a `Commit`"]],"type":[["Commits","A convienience type for multiple commits"]]});

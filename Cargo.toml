@@ -1,25 +1,22 @@
 [package]
-
-repository = "https://github.com/thoughtram/clog"
+repository = "https://github.com/clog-tool/clog-cli"
 readme = "README.md"
 keywords = ["git", "log", "changelog", "parser", "parse"]
 license = "MIT"
-name = "clog"
+name = "clog-cli"
 version = "0.8.2"
 authors = ["Christoph Burgdorf <christoph.burgdorf@bvsn.org>"]
 description = "A conventional changelog for the rest of us"
 exclude = ["docs/*"]
 
 [[bin]]
-doc = false
 name = "clog"
 
 [dependencies]
-regex = "*"
 semver = "*"
-toml = "*"
 clap = "*"
 time = "*"
+clog =  "*"
 
 [dependencies.regex_macros]
 version = "*"
