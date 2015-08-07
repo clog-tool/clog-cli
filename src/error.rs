@@ -8,6 +8,7 @@ use clog::error::Error as ClogErr;
 use fmt::Format;
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub enum CliError {
     Semver(Box<Error>, String),
     Generic(String),
