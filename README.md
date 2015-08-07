@@ -39,6 +39,8 @@ Follow these instructions to compile `clog`, then skip down to Installation.
 
 There are several precompiled binaries readily availbe. Browse to http://wod.twentyfives.net/bin/clog/ and download the latest binary for your particular OS. Once you download and extract the tar file (or zip for Windows), the binary will be located at `bin/clog`
 
+**Note**: The Mac distribution is available on npm via [clog-cli](http://npm.im/clog-cli).
+
 #### Installation
 
 Once you have downloaded, or compiled, `clog` you simply need to place the binary somewhere in your `$PATH`. If you are not familiar with `$PATH` read-on; otherwise skip down to Using clog.
