@@ -16,7 +16,7 @@ name = "clog"
 semver = "*"
 clap = "*"
 time = "*"
-clog = {git = "https://github.com/clog-tool/clog-lib"}
+clog = "*"
 
 [dependencies.regex_macros]
 version = "*"

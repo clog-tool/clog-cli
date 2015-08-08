@@ -4,7 +4,7 @@ version = "0.8.2"
 dependencies = [
  "ansi_term 0.6.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 1.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "clog 0.8.2 (git+https://github.com/clog-tool/clog-lib)",
+ "clog 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex_macros 0.1.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "semver 0.1.20 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.32 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -35,7 +35,7 @@ dependencies = [
 [[package]]
 name = "clog"
 version = "0.8.2"
-source = "git+https://github.com/clog-tool/clog-lib#c8b23ddb64f477afbb58ca57a83f8a172c23076e"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "regex 0.1.41 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.32 (registry+https://github.com/rust-lang/crates.io-index)",
