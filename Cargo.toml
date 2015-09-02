@@ -4,7 +4,7 @@ readme = "README.md"
 keywords = ["git", "log", "changelog", "parser", "parse"]
 license = "MIT"
 name = "clog-cli"
-version = "0.8.2"
+version = "0.9.0"
 authors = ["Christoph Burgdorf <christoph.burgdorf@bvsn.org>"]
 description = "A conventional changelog for the rest of us"
 exclude = ["docs/*"]
@@ -13,17 +13,17 @@ exclude = ["docs/*"]
 name = "clog"
 
 [dependencies]
-semver = "*"
-clap = "*"
-time = "*"
-clog = "*"
+semver = "~0.1.20"
+clap = "~1.3.0"
+time = "~0.1.32"
+clog = "~0.8.2"
 
 [dependencies.regex_macros]
-version = "*"
+version = "~0.1.21"
 optional = true
 
 [dependencies.ansi_term]
-version = "*"
+version = "~0.6.3"
 optional = true
 
 [features]
