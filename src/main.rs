@@ -64,7 +64,7 @@ fn main () {
         // Since --setversion shouldn't be used with any of the --major, --minor, or --match, we
         // set those as exclusions
         .arg_group(ArgGroup::with_name("setver")
-                .add_all(vec!["major", "minor", "patch", "ver"]))
+                .add_all(&["major", "minor", "patch", "ver"]))
         .after_help("\
 * If your .git directory is a child of your project directory (most common, such as\n\
 /myproject/.git) AND not in the current working directory (i.e you need to use --work-tree or\n\
