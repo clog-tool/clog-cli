@@ -49,16 +49,17 @@ impl Error for CliError {
     fn description<'a>(&'a self) -> &'a str {
         match *self {
             CliError::Semver(_, ref s) => &*s,
-            CliError::Generic(ref d)   => &*d,
-            CliError::Unknown      => "An unknown fatal error has occurred, please consider filing a bug-report!"
+            CliError::Generic(ref d) => &*d,
+            CliError::Unknown => "An unknown fatal error has occurred, please consider filing a \
+                                  bug-report!",
         }
     }
 
     fn cause(&self) -> Option<&Error> {
         match *self {
             CliError::Semver(ref e, _) => Some(&**e),
-            CliError::Generic(..)  => None,
-            CliError::Unknown      => None
+            CliError::Generic(..) => None,
+            CliError::Unknown => None,
         }
     }
 }
