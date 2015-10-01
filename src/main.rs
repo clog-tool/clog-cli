@@ -109,11 +109,13 @@ pub fn from_matches(matches: &ArgMatches) -> CliResult<Clog> {
     let mut clog = if let Some(cfg) = matches.value_of("config") {
         debugln!("User passed in config file: {:?}", cfg);
         if matches.is_present("workdir") && matches.is_present("gitdir") {
-            debugln!("User passed in both\n\tworking dir: {:?}\n\tgit dir: {:?}", matches.value_of("workdir"), matches.value_of("gitdir"));
+            debugln!("User passed in both\n\tworking dir: {:?}\n\tgit dir: {:?}",
+                     matches.value_of("workdir"),
+                     matches.value_of("gitdir"));
            // use --config --work-tree --git-dir
             try!(Clog::with_all(matches.value_of("gitdir").unwrap(),
-                          matches.value_of("workdir").unwrap(),
-                          cfg))
+                                matches.value_of("workdir").unwrap(),
+                                cfg))
         } else if let Some(dir) = matches.value_of("workdir") {
             debugln!("User passed in working dir: {:?}", dir);
            // use --config --work-tree
@@ -132,7 +134,9 @@ pub fn from_matches(matches: &ArgMatches) -> CliResult<Clog> {
         if matches.is_present("gitdir") && matches.is_present("workdir") {
             let wdir = matches.value_of("workdir").unwrap();
             let gdir = matches.value_of("gitdir").unwrap();
-            debugln!("User passed in both\n\tworking dir: {:?}\n\tgit dir: {:?}", wdir, gdir);
+            debugln!("User passed in both\n\tworking dir: {:?}\n\tgit dir: {:?}",
+                     wdir,
+                     gdir);
             try!(Clog::with_dirs(gdir, wdir))
         } else if let Some(dir) = matches.value_of("gitdir") {
             debugln!("User passed in git dir: {:?}", dir);
@@ -183,10 +187,19 @@ pub fn from_matches(matches: &ArgMatches) -> CliResult<Clog> {
                         }
                         _ => unreachable!(),
                     }
-                    format!("{}{}", if had_v{"v"}else{""}, v)
+                    format!("{}{}",
+                            if had_v {
+                                "v"
+                            } else {
+                                ""
+                            },
+                            v)
                 }
                 Err(e) => {
-                    return Err(CliError::Semver(Box::new(e), String::from("Failed to parse version into valid SemVer. Ensure the version is in the X.Y.Z format.")));
+                    return Err(CliError::Semver(Box::new(e),
+                                                String::from("Failed to parse version into \
+                                                              valid SemVer. Ensure the version \
+                                                              is in the X.Y.Z format.")));
                 }
             }
         } else {
@@ -205,8 +218,8 @@ pub fn from_matches(matches: &ArgMatches) -> CliResult<Clog> {
     }
 
     if matches.is_present("link-style") {
-        clog.link_style =
-            value_t!(matches.value_of("link-style"), LinkStyle).unwrap_or(LinkStyle::Github);
+        clog.link_style = value_t!(matches.value_of("link-style"), LinkStyle)
+                              .unwrap_or(LinkStyle::Github);
     }
 
     if let Some(subtitle) = matches.value_of("subtitle") {

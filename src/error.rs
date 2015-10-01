@@ -50,8 +50,8 @@ impl Error for CliError {
         match *self {
             CliError::Semver(_, ref s) => &*s,
             CliError::Generic(ref d) => &*d,
-            CliError::Unknown => "An unknown fatal error has occurred, please consider filing a \
-                                  bug-report!",
+            CliError::Unknown =>
+                "An unknown fatal error has occurred, please consider filing a bug-report!",
         }
     }
 
