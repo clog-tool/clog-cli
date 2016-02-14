@@ -19,7 +19,7 @@ The way this works, is every time you make a commit, you ensure your commit subj
 
 ## Usage
 
-There are two ways to use `clog`, as a binary via the command line or as a library in your applicaitons via [clog-lib](https://github.com/clog-tool/clog-lib).
+There are two ways to use `clog`, as a binary via the command line or as a library in your applications via [clog-lib](https://github.com/clog-tool/clog-lib).
 
 ### Binary (Command Line)
 
