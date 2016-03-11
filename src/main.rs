@@ -213,6 +213,10 @@ pub fn from_matches(matches: &ArgMatches) -> CliResult<Clog> {
         clog.from = clog.get_latest_tag();
     }
 
+    if let Some(to) = matches.value_of("to") {
+        clog.to = to.to_owned();
+    }
+
     if let Some(repo) = matches.value_of("repo") {
         clog.repo = repo.to_owned();
     }
