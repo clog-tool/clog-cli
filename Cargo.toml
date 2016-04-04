@@ -14,9 +14,9 @@ name = "clog"
 
 [dependencies]
 semver = "~0.1.20"
-clap = "~1.4"
+clap = "~2.2"
 time = "~0.1.32"
-clog = "~0.9.0"
+clog = "~0.9.1"
 
 [dependencies.ansi_term]
 version = "~0.6.3"
