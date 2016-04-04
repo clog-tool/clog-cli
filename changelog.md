@@ -1,7 +1,14 @@
+<a name="0.9.2"></a>
+### 0.9.2 (2016-04-04)
+
+
+#### Bug Fixes
+
+*   Support --to option ([1e28a670](https://github.com/clog-tool/clog-cli/commit/1e28a6705883fe4a74ba825c00e4722ebec22bec))
+
+
 <a name="0.9.1"></a>
 ## 0.9.1 (2015-10-25)
-
-
 
 
 <a name="0.8.2"></a>
