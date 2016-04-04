@@ -13,13 +13,13 @@ exclude = ["docs/*"]
 name = "clog"
 
 [dependencies]
-semver = "~0.1.20"
+semver = "~0.2.3"
 clap = "~2.2"
 time = "~0.1.32"
 clog = "~0.9.1"
 
 [dependencies.ansi_term]
-version = "~0.6.3"
+version = "~0.7.2"
 optional = true
 
 [features]

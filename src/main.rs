@@ -25,54 +25,54 @@ fn main() {
     let styles = LinkStyle::variants();
     let matches = App::new("clog")
         // Pull version from Cargo.toml
-        .version(&format!("v{}", crate_version!())[..])
+        .version(crate_version!())
         .about("a conventional changelog for the rest of us")
-        .args_from_usage("-r, --repository=[repo]     'Repository used for generating commit and issue links{n}\
+        .args_from_usage("-r, --repository [URL]      'Repository used for generating commit and issue links \
                                                        (without the .git, e.g. https://github.com/thoughtram/clog)'
-                          -f, --from=[from]           'e.g. 12a8546'
-                          -T, --format=[format]       'The output format, defaults to markdown{n}\
+                          -f, --from [HASH]           'e.g. 12a8546'
+                          -T, --format [FORMAT]       'The output format, defaults to markdown \
                                                        (valid values: markdown, json)'
                           -M, --major                 'Increment major version by one (Sets minor and patch to 0)'
-                          -g, --git-dir=[gitdir]      'Local .git directory (defaults to current dir + \'.git\')*'
-                          -w, --work-tree=[workdir]   'Local working tree of the git project{n}\
+                          -g, --git-dir [PATH]        'Local .git directory (defaults to current dir + \'.git\')*'
+                          -w, --work-tree [PATH]      'Local working tree of the git project \
                                                        (defaults to current dir)*'
                           -m, --minor                 'Increment minor version by one (Sets patch to 0)'
                           -p, --patch                 'Increment patch version by one'
-                          -s, --subtitle=[subtitle]   'e.g. \"Crazy Release Title\"'
-                          -t, --to=[to]               'e.g. 8057684 (Defaults to HEAD when omitted)'
-                          -o, --outfile=[outfile]     'Where to write the changelog (Defaults to stdout when omitted)'
-                          -c, --config=[config]       'The Clog Configuration TOML file to use (Defaults to{n}\
+                          -s, --subtitle [TITLE]      'e.g. \"Crazy Release Title\"'
+                          -t, --to [HASH]             'e.g. 8057684 (Defaults to HEAD when omitted)'
+                          -o, --outfile [FILE]        'Where to write the changelog (Defaults to stdout when omitted)'
+                          -c, --config [FILE]         'The Clog Configuration TOML file to use (Defaults to \
                                                        \'.clog.toml\')**'
-                          -i, --infile=[infile]       'A changelog to append to, but *NOT* write to (Useful in{n}\
+                          -i, --infile [FILE]         'A changelog to append to, but *NOT* write to (Useful in \
                                                        conjunction with --outfile)'
-                          --setversion=[ver]          'e.g. 1.0.1'")
+                          --setversion [VER]          'e.g. 1.0.1'")
         // Because --from-latest-tag can't be used with --from, we add it seperately so we can
         // specify a .conflicts_with()
         .arg(Arg::from_usage("-F, --from-latest-tag 'use latest tag as start (instead of --from)'")
                 .conflicts_with("from"))
         // Because we may want to add more "flavors" at a later date, we can automate the process
         // of enumerating all possible values with clap
-        .arg(Arg::from_usage("-l, --link-style=[style]     'The style of repository link to generate{n}(Defaults to github)'")
+        .arg(Arg::from_usage("-l, --link-style [STYLE]     'The style of repository link to generate (Defaults to github)'")
             .possible_values(&styles))
         // Because no one should use --changelog and either an --infile or --outfile, we add those
         // to conflicting lists
-        .arg(Arg::from_usage("-C, --changelog=[changelog] 'A previous changelog to prepend new changes to (this is like{n}\
-                                                           using the same file for both --infile and --outfile and{n}\
+        .arg(Arg::from_usage("-C, --changelog [FILE]       'A previous changelog to prepend new changes to (this is like \
+                                                           using the same file for both --infile and --outfile and \
                                                            should not be used in conjuction with either)'")
             .conflicts_with("infile")
             .conflicts_with("outfile"))
         // Since --setversion shouldn't be used with any of the --major, --minor, or --match, we
         // set those as exclusions
-        .arg_group(ArgGroup::with_name("setver")
-                .add_all(&["major", "minor", "patch", "ver"]))
+        .group(ArgGroup::with_name("setver")
+                .args(&["major", "minor", "patch", "ver"]))
         .after_help("\
-* If your .git directory is a child of your project directory (most common, such as\n\
-/myproject/.git) AND not in the current working directory (i.e you need to use --work-tree or\n\
---git-dir) you only need to specify either the --work-tree (i.e. /myproject) OR --git-dir (i.e. \n\
+* If your .git directory is a child of your project directory (most common, such as \
+/myproject/.git) AND not in the current working directory (i.e you need to use --work-tree or \
+--git-dir) you only need to specify either the --work-tree (i.e. /myproject) OR --git-dir (i.e. \
 /myproject/.git), you don't need to use both.\n\n\
 
-** If using the --config to specify a clog configuration TOML file NOT in the current working\n\
-directory (meaning you need to use --work-tree or --git-dir) AND the TOML file is inside your\n\
+** If using the --config to specify a clog configuration TOML file NOT in the current working \
+directory (meaning you need to use --work-tree or --git-dir) AND the TOML file is inside your \
 project directory (i.e. /myproject/.clog.toml) you do not need to use --work-tree or --git-dir.")
         .get_matches();
 
@@ -108,19 +108,19 @@ pub fn from_matches(matches: &ArgMatches) -> CliResult<Clog> {
     debugln!("Creating clog from matches");
     let mut clog = if let Some(cfg) = matches.value_of("config") {
         debugln!("User passed in config file: {:?}", cfg);
-        if matches.is_present("workdir") && matches.is_present("gitdir") {
+        if matches.is_present("work-dir") && matches.is_present("gitdir") {
             debugln!("User passed in both\n\tworking dir: {:?}\n\tgit dir: {:?}",
-                     matches.value_of("workdir"),
-                     matches.value_of("gitdir"));
+                     matches.value_of("work-dir"),
+                     matches.value_of("git-dir"));
            // use --config --work-tree --git-dir
-            try!(Clog::with_all(matches.value_of("gitdir").unwrap(),
-                                matches.value_of("workdir").unwrap(),
+            try!(Clog::with_all(matches.value_of("git-dir").unwrap(),
+                                matches.value_of("work-dir").unwrap(),
                                 cfg))
-        } else if let Some(dir) = matches.value_of("workdir") {
+        } else if let Some(dir) = matches.value_of("work-dir") {
             debugln!("User passed in working dir: {:?}", dir);
            // use --config --work-tree
             try!(Clog::with_dir_and_file(dir, cfg))
-        } else if let Some(dir) = matches.value_of("gitdir") {
+        } else if let Some(dir) = matches.value_of("git-dir") {
             debugln!("User passed in git dir: {:?}", dir);
            // use --config --git-dir
             try!(Clog::with_dir_and_file(dir, cfg))
@@ -131,17 +131,17 @@ pub fn from_matches(matches: &ArgMatches) -> CliResult<Clog> {
         }
     } else {
         debugln!("User didn't pass in a config");
-        if matches.is_present("gitdir") && matches.is_present("workdir") {
-            let wdir = matches.value_of("workdir").unwrap();
-            let gdir = matches.value_of("gitdir").unwrap();
+        if matches.is_present("git-dir") && matches.is_present("work-dir") {
+            let wdir = matches.value_of("work-dir").unwrap();
+            let gdir = matches.value_of("git-dir").unwrap();
             debugln!("User passed in both\n\tworking dir: {:?}\n\tgit dir: {:?}",
                      wdir,
                      gdir);
             try!(Clog::with_dirs(gdir, wdir))
-        } else if let Some(dir) = matches.value_of("gitdir") {
+        } else if let Some(dir) = matches.value_of("git-dir") {
             debugln!("User passed in git dir: {:?}", dir);
             try!(Clog::with_dir(dir))
-        } else if let Some(dir) = matches.value_of("workdir") {
+        } else if let Some(dir) = matches.value_of("work-dir") {
             debugln!("User passed in working dir: {:?}", dir);
             try!(Clog::with_dir(dir))
         } else {
@@ -217,7 +217,7 @@ pub fn from_matches(matches: &ArgMatches) -> CliResult<Clog> {
         clog.to = to.to_owned();
     }
 
-    if let Some(repo) = matches.value_of("repo") {
+    if let Some(repo) = matches.value_of("repository") {
         clog.repo = repo.to_owned();
     }
 
