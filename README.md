@@ -25,6 +25,14 @@ There are two ways to use `clog`, as a binary via the command line or as a libra
 
 In order to use `clog` via the command line you must first obtain a binary by either compiling it yourself, or downlading and installing one of the precompiled binaries.
 
+#### `cargo install`
+
+If you want to both compile and install `clog` using *cargo* you can simply run
+
+```bash
+cargo install clog-cli
+```
+
 #### Compiling
 
 Follow these instructions to compile `clog`, then skip down to Installation.
