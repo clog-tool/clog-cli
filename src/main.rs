@@ -64,7 +64,7 @@ fn main() {
         // Since --setversion shouldn't be used with any of the --major, --minor, or --match, we
         // set those as exclusions
         .group(ArgGroup::with_name("setver")
-                .args(&["major", "minor", "patch", "ver"]))
+                .args(&["major", "minor", "patch", "setversion"]))
         .after_help("\
 * If your .git directory is a child of your project directory (most common, such as \
 /myproject/.git) AND not in the current working directory (i.e you need to use --work-tree or \
@@ -156,8 +156,8 @@ pub fn from_matches(matches: &ArgMatches) -> CliResult<Clog> {
         let (major, minor, patch) = (matches.is_present("major"),
                                      matches.is_present("minor"),
                                      matches.is_present("patch"));
-        if matches.is_present("ver") {
-            matches.value_of("ver").unwrap().to_owned()
+        if matches.is_present("setversion") {
+            matches.value_of("setversion").unwrap().to_owned()
         } else if major || minor || patch {
             let mut had_v = false;
             let v_string = clog.get_latest_tag_ver();
