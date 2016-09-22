@@ -143,16 +143,17 @@ In order to see it in action, you'll need a repository that already has some of 
 2. Ensure you already `clog` binary from any of the steps above
 
 4. There are many, many ways to run `clog`. Note, in these examples we will be typing the same options over and over again, in times like that we could a [clog TOML configuration file](https://github.com/clog-tool/clog-cli#default-options) to specify those options that don't normally change. Also note, all these CLI options have short versions as well, we're using the long version because they're easier to understand.
- a. Let's start by picking up only new commits since our last release (this may not be a lot...or none)
- b. Run `clog -r https://github.com/clog-tool/clog-cli --outfile only_new.md`
- c. By default, `clog` outputs to `stdout` unless you have a file set inside a TOML configuration file. (Note, we could have used the shell `>` operator instead of `--outfile`)
- d. Anything options you set via the CLI will override anything you set the configuration file.
- e. Let's now tell `clog` where it can find our old changelog, and prepend any new commits to that old data
- f. Run `clog -r https://github.com/clog-tool/clog-cli --infile changelog.md --outfile new_combined.md`
- g. Finally, let's assume like most projects we just want to use one file, and prepend all new data to our old changelog (most useful)
- h. First make a backup of the `changelog.md` so you can compare it later `cp changelog.md changelog.md.bak`
- i. Run `clog -r https://github.com/clog-tool/clog-cli --changelog changelog.md`
- j. Try viewing any of the `only_new.md`, `new_combined.md`, `changelog.md.bak`, or `changelog.md` in your favorite markdown viewer to compare them.
+
+  1. Let's start by picking up only new commits since our last release (this may not be a lot...or none)
+  2. Run `clog -r https://github.com/clog-tool/clog-cli --outfile only_new.md`
+  3. By default, `clog` outputs to `stdout` unless you have a file set inside a TOML configuration file. (Note, we could have used the shell `>` operator instead of `--outfile`)
+  4. Anything options you set via the CLI will override anything you set the configuration file.
+  5. Let's now tell `clog` where it can find our old changelog, and prepend any new commits to that old data
+  6. Run `clog -r https://github.com/clog-tool/clog-cli --infile changelog.md --outfile new_combined.md`
+  7. Finally, let's assume like most projects we just want to use one file, and prepend all new data to our old changelog (most useful)
+  8. First make a backup of the `changelog.md` so you can compare it later `cp changelog.md changelog.md.bak`
+  9. Run `clog -r https://github.com/clog-tool/clog-cli --changelog changelog.md`
+  10. Try viewing any of the `only_new.md`, `new_combined.md`, `changelog.md.bak`, or `changelog.md` in your favorite markdown viewer to compare them.
 
 ### As a Library
 
