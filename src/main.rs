@@ -1,15 +1,15 @@
 #[macro_use]
 extern crate clap;
-extern crate time;
-extern crate clog;
-extern crate semver;
 #[cfg(feature = "color")]
 extern crate ansi_term;
+extern crate clog;
+extern crate semver;
+extern crate time;
 
 use clap::{App, Arg, ArgGroup, ArgMatches};
 
-use clog::{LinkStyle, Clog};
 use clog::fmt::ChangelogFormat;
+use clog::{Clog, LinkStyle};
 
 #[macro_use]
 mod macros;
@@ -46,7 +46,7 @@ fn main() {
                           -i, --infile [FILE]         'A changelog to append to, but *NOT* write to (Useful in \
                                                        conjunction with --outfile)'
                           --setversion [VER]          'e.g. 1.0.1'")
-        // Because --from-latest-tag can't be used with --from, we add it seperately so we can
+        // Because --from-latest-tag can't be used with --from, we add it separately so we can
         // specify a .conflicts_with()
         .arg(Arg::from_usage("-F, --from-latest-tag 'use latest tag as start (instead of --from)'")
                 .conflicts_with("from"))
@@ -58,7 +58,7 @@ fn main() {
         // to conflicting lists
         .arg(Arg::from_usage("-C, --changelog [FILE]       'A previous changelog to prepend new changes to (this is like \
                                                            using the same file for both --infile and --outfile and \
-                                                           should not be used in conjuction with either)'")
+                                                           should not be used in conjunction with either)'")
             .conflicts_with("infile")
             .conflicts_with("outfile"))
         // Since --setversion shouldn't be used with any of the --major, --minor, or --match, we
@@ -111,24 +111,28 @@ pub fn from_matches(matches: &ArgMatches) -> CliResult<Clog> {
     let mut clog = if let Some(cfg) = matches.value_of("config") {
         debugln!("User passed in config file: {:?}", cfg);
         if matches.is_present("work-dir") && matches.is_present("gitdir") {
-            debugln!("User passed in both\n\tworking dir: {:?}\n\tgit dir: {:?}",
-                     matches.value_of("work-dir"),
-                     matches.value_of("git-dir"));
-           // use --config --work-tree --git-dir
-            Clog::with_all(matches.value_of("git-dir").unwrap(),
-                                matches.value_of("work-dir").unwrap(),
-                                cfg)?
+            debugln!(
+                "User passed in both\n\tworking dir: {:?}\n\tgit dir: {:?}",
+                matches.value_of("work-dir"),
+                matches.value_of("git-dir")
+            );
+            // use --config --work-tree --git-dir
+            Clog::with_all(
+                matches.value_of("git-dir").unwrap(),
+                matches.value_of("work-dir").unwrap(),
+                cfg,
+            )?
         } else if let Some(dir) = matches.value_of("work-dir") {
             debugln!("User passed in working dir: {:?}", dir);
-           // use --config --work-tree
+            // use --config --work-tree
             Clog::with_dir_and_file(dir, cfg)?
         } else if let Some(dir) = matches.value_of("git-dir") {
             debugln!("User passed in git dir: {:?}", dir);
-           // use --config --git-dir
+            // use --config --git-dir
             Clog::with_dir_and_file(dir, cfg)?
         } else {
             debugln!("User only passed config");
-           // use --config only
+            // use --config only
             Clog::from_file(cfg)?
         }
     } else {
@@ -136,9 +140,11 @@ pub fn from_matches(matches: &ArgMatches) -> CliResult<Clog> {
         if matches.is_present("git-dir") && matches.is_present("work-dir") {
             let wdir = matches.value_of("work-dir").unwrap();
             let gdir = matches.value_of("git-dir").unwrap();
-            debugln!("User passed in both\n\tworking dir: {:?}\n\tgit dir: {:?}",
-                     wdir,
-                     gdir);
+            debugln!(
+                "User passed in both\n\tworking dir: {:?}\n\tgit dir: {:?}",
+                wdir,
+                gdir
+            );
             Clog::with_dirs(gdir, wdir)?
         } else if let Some(dir) = matches.value_of("git-dir") {
             debugln!("User passed in git dir: {:?}", dir);
@@ -155,9 +161,11 @@ pub fn from_matches(matches: &ArgMatches) -> CliResult<Clog> {
     // compute version early, so we can exit on error
     clog.version = {
         // less typing later...
-        let (major, minor, patch) = (matches.is_present("major"),
-                                     matches.is_present("minor"),
-                                     matches.is_present("patch"));
+        let (major, minor, patch) = (
+            matches.is_present("major"),
+            matches.is_present("minor"),
+            matches.is_present("patch"),
+        );
         if matches.is_present("setversion") {
             matches.value_of("setversion").unwrap().to_owned()
         } else if major || minor || patch {
@@ -174,34 +182,32 @@ pub fn from_matches(matches: &ArgMatches) -> CliResult<Clog> {
                 Ok(ref mut v) => {
                     // if-else may be quicker, but it's longer mentally, and this isn't slow
                     match (major, minor, patch) {
-                        (true,_,_) => {
+                        (true, _, _) => {
                             v.major += 1;
                             v.minor = 0;
                             v.patch = 0;
                         }
-                        (_,true,_) => {
+                        (_, true, _) => {
                             v.minor += 1;
                             v.patch = 0;
                         }
-                        (_,_,true) => {
+                        (_, _, true) => {
                             v.patch += 1;
                             clog.patch_ver = true;
                         }
                         _ => unreachable!(),
                     }
-                    format!("{}{}",
-                            if had_v {
-                                "v"
-                            } else {
-                                ""
-                            },
-                            v)
+                    format!("{}{}", if had_v { "v" } else { "" }, v)
                 }
                 Err(e) => {
-                    return Err(CliError::Semver(Box::new(e),
-                                                String::from("Failed to parse version into \
+                    return Err(CliError::Semver(
+                        Box::new(e),
+                        String::from(
+                            "Failed to parse version into \
                                                               valid SemVer. Ensure the version \
-                                                              is in the X.Y.Z format.")));
+                                                              is in the X.Y.Z format.",
+                        ),
+                    ));
                 }
             }
         } else {
@@ -224,8 +230,8 @@ pub fn from_matches(matches: &ArgMatches) -> CliResult<Clog> {
     }
 
     if matches.is_present("link-style") {
-        clog.link_style = value_t!(matches.value_of("link-style"), LinkStyle)
-                              .unwrap_or(LinkStyle::Github);
+        clog.link_style =
+            value_t!(matches.value_of("link-style"), LinkStyle).unwrap_or(LinkStyle::Github);
     }
 
     if let Some(subtitle) = matches.value_of("subtitle") {

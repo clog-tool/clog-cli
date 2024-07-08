@@ -1,7 +1,7 @@
 use std::convert::From;
 use std::error::Error;
-use std::fmt::{Display, Formatter};
 use std::fmt::Result as FmtResult;
+use std::fmt::{Display, Formatter};
 
 use clog::error::Error as ClogErr;
 
@@ -12,7 +12,7 @@ use fmt::Format;
 pub enum CliError {
     Semver(Box<dyn Error>, String),
     Generic(String),
-    Unknown
+    Unknown,
 }
 
 // Copies clog::error::Error;
@@ -50,8 +50,9 @@ impl Error for CliError {
         match *self {
             CliError::Semver(_, ref s) => &*s,
             CliError::Generic(ref d) => &*d,
-            CliError::Unknown =>
-                "An unknown fatal error has occurred, please consider filing a bug-report!",
+            CliError::Unknown => {
+                "An unknown fatal error has occurred, please consider filing a bug-report!"
+            }
         }
     }
 
