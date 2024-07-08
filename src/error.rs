@@ -10,7 +10,7 @@ use fmt::Format;
 #[derive(Debug)]
 #[allow(dead_code)]
 pub enum CliError {
-    Semver(Box<Error>, String),
+    Semver(Box<dyn Error>, String),
     Generic(String),
     Unknown
 }
@@ -41,7 +41,7 @@ impl CliError {
 
 impl Display for CliError {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "{} {}", Format::Error("error:"), self.description())
+        write!(f, "{} {}", Format::Error("error:"), self)
     }
 }
 
@@ -55,7 +55,7 @@ impl Error for CliError {
         }
     }
 
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         match *self {
             CliError::Semver(ref e, _) => Some(&**e),
             CliError::Generic(..) => None,
@@ -66,6 +66,6 @@ impl Error for CliError {
 
 impl From<ClogErr> for CliError {
     fn from(ce: ClogErr) -> Self {
-        CliError::Generic(ce.description().to_owned())
+        CliError::Generic(ce.to_string().to_owned())
     }
 }

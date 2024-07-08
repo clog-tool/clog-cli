@@ -69,8 +69,10 @@ fn main() {
 * If your .git directory is a child of your project directory (most common, such as \
 /myproject/.git) AND not in the current working directory (i.e you need to use --work-tree or \
 --git-dir) you only need to specify either the --work-tree (i.e. /myproject) OR --git-dir (i.e. \
-/myproject/.git), you don't need to use both.\n\n\
-
+/myproject/.git), you don't need to use both. \
+ \
+ \
+ \
 ** If using the --config to specify a clog configuration TOML file NOT in the current working \
 directory (meaning you need to use --work-tree or --git-dir) AND the TOML file is inside your \
 project directory (i.e. /myproject/.clog.toml) you do not need to use --work-tree or --git-dir.")
@@ -113,21 +115,21 @@ pub fn from_matches(matches: &ArgMatches) -> CliResult<Clog> {
                      matches.value_of("work-dir"),
                      matches.value_of("git-dir"));
            // use --config --work-tree --git-dir
-            try!(Clog::with_all(matches.value_of("git-dir").unwrap(),
+            Clog::with_all(matches.value_of("git-dir").unwrap(),
                                 matches.value_of("work-dir").unwrap(),
-                                cfg))
+                                cfg)?
         } else if let Some(dir) = matches.value_of("work-dir") {
             debugln!("User passed in working dir: {:?}", dir);
            // use --config --work-tree
-            try!(Clog::with_dir_and_file(dir, cfg))
+            Clog::with_dir_and_file(dir, cfg)?
         } else if let Some(dir) = matches.value_of("git-dir") {
             debugln!("User passed in git dir: {:?}", dir);
            // use --config --git-dir
-            try!(Clog::with_dir_and_file(dir, cfg))
+            Clog::with_dir_and_file(dir, cfg)?
         } else {
             debugln!("User only passed config");
            // use --config only
-            try!(Clog::from_file(cfg))
+            Clog::from_file(cfg)?
         }
     } else {
         debugln!("User didn't pass in a config");
@@ -137,16 +139,16 @@ pub fn from_matches(matches: &ArgMatches) -> CliResult<Clog> {
             debugln!("User passed in both\n\tworking dir: {:?}\n\tgit dir: {:?}",
                      wdir,
                      gdir);
-            try!(Clog::with_dirs(gdir, wdir))
+            Clog::with_dirs(gdir, wdir)?
         } else if let Some(dir) = matches.value_of("git-dir") {
             debugln!("User passed in git dir: {:?}", dir);
-            try!(Clog::with_dir(dir))
+            Clog::with_dir(dir)?
         } else if let Some(dir) = matches.value_of("work-dir") {
             debugln!("User passed in working dir: {:?}", dir);
-            try!(Clog::with_dir(dir))
+            Clog::with_dir(dir)?
         } else {
             debugln!("Trying the default config file");
-            try!(Clog::from_file(CLOG_CONFIG_FILE))
+            Clog::from_file(CLOG_CONFIG_FILE)?
         }
     };
 
@@ -164,7 +166,7 @@ pub fn from_matches(matches: &ArgMatches) -> CliResult<Clog> {
             let first_char = v_string.chars().nth(0).unwrap_or(' ');
             let v_slice = if first_char == 'v' || first_char == 'V' {
                 had_v = true;
-                v_string.trim_left_matches(|c| c == 'v' || c == 'V')
+                v_string.trim_start_matches(|c| c == 'v' || c == 'V')
             } else {
                 &v_string[..]
             };
