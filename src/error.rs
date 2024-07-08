@@ -41,7 +41,7 @@ impl CliError {
 
 impl Display for CliError {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "{} {}", Format::Error("error:"), self)
+        write!(f, "{} {}", Format::Error("error:"), self.description())
     }
 }
 
