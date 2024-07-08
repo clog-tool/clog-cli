@@ -68,6 +68,8 @@ jobs:
 
       - name: Check spelling
         uses: crate-ci/typos@master
+        with:
+          config: ./.typos.toml
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
