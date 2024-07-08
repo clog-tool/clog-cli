@@ -1,0 +1,82 @@
+---
+on:
+  push:
+    branches: [master, main]
+
+name: Nightly Release
+
+env:
+  RELEASE_BIN: clog
+  RELEASE_ADDS: >-
+    LICENSE-APACHE
+    LICENSE-MIT
+    nightly-CHANGELOG.md
+    README.md
+
+jobs:
+  nightly-release:
+    name: Nightly Release
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+          target: x86_64-unknown-linux-musl
+
+      - name: Compile
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --target x86_64-unknown-linux-musl
+
+      - name: Install CLOG
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: clog-cli
+
+      - name: Generate Changelog
+        run: clog -F -o nightly-CHANGELOG.md -i /dev/null
+
+      - name: Make artifacts dir
+        run: mkdir -p artifacts/
+
+      - name: Copy all artifacts into dir
+        run: cp target/x86_64-unknown-linux-musl/release/${{ env.RELEASE_BIN }} ${{ env.RELEASE_ADDS }} artifacts/
+
+      - uses: benjlevesque/short-sha@v1.2
+        id: short-sha
+
+      - name: Create archive for Linux
+        run: cd artifacts/ && tar czf ../${{ env.RELEASE_BIN }}-${{ env.SHA }}-x86_64-linux-musl.tar.gz ./*
+        env:
+          SHA: ${{ steps.short-sha.outputs.sha }}
+
+      - name: Remove previous Nightly Release
+        uses: dev-drprasad/delete-tag-and-release@v0.2.0
+        with:
+          delete_release: true
+          tag_name: nightly
+          repo: clog-tool/clog-cli
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Nightly Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: clog Nightly (${{ env.SHA }})
+          tag_name: nightly
+          prerelease: true
+          body_path: nightly-CHANGELOG.md
+          files: |
+            ${{ env.RELEASE_BIN }}-${{ env.SHA }}-x86_64-linux-musl.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: clog-tool/clog-cli
+          SHA: ${{ steps.short-sha.outputs.sha }}
+

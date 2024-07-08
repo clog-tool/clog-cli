@@ -1,0 +1,86 @@
+name: CI-PR
+
+on:
+  pull_request:
+
+concurrency:
+  group: ci-pr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci-pr:
+    name: CI-PR
+    needs: [test-full, test-minimal, lint]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Done
+        run: exit 0
+  test-full:
+    name: Tests
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+        rust: [stable]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          override: true
+      - name: Cache Builds
+        uses: Swatinem/rust-cache@v2
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Compile
+        run: cargo test --no-run --all-features
+      - name: Test
+        run: cargo test --all-features
+  test-minimal:
+    name: Tests
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+        rust: [stable]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          override: true
+      - name: Cache Builds
+        uses: Swatinem/rust-cache@v2
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Compile
+        run: cargo test --no-run --no-default-features
+      - name: Test
+        run: cargo test --no-default-features
+  lint:
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check spelling
+        uses: crate-ci/typos@master
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: nightly
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Clippy
+        run: cargo clippy --all-features --all-targets
+
+      - name: Format Check
+        run: cargo fmt --check
+
+
