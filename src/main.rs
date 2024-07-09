@@ -1,14 +1,6 @@
-#[macro_use]
-extern crate clap;
-#[cfg(feature = "color")]
-extern crate ansi_term;
-extern crate clog;
-extern crate semver;
-
 use std::time::Instant;
 
-use clap::{App, Arg, ArgGroup, ArgMatches};
-
+use clap::{crate_version, value_t, value_t_or_exit, App, Arg, ArgGroup, ArgMatches};
 use clog::fmt::ChangelogFormat;
 use clog::{Clog, LinkStyle};
 

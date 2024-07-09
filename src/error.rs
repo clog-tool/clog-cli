@@ -5,7 +5,7 @@ use std::fmt::{Display, Formatter};
 
 use clog::error::Error as ClogErr;
 
-use fmt::Format;
+use crate::fmt::Format;
 
 #[derive(Debug)]
 #[allow(dead_code)]
