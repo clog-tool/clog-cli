@@ -9,18 +9,18 @@ use crate::{
 
 static VERSION: &str = env!("CARGO_PKG_VERSION");
 
-static AFTER_HELP: &str = r#"
-If your .git directory is a child of your project directory (most common,
-such as /myproject/.git) AND not in the current working directory (i.e you need
-to use --work-tree or
---git-dir) you only need to specify either the --work-tree (i.e. /myproject) OR
---git-dir (i.e. /myproject/.git), you don't need to use both.
+static AFTER_HELP: &str = "
+If your .git directory is a child of your project directory (most common, such \
+as /myproject/.git) AND not in the current working directory (i.e you need to \
+use --work-tree or --git-dir) you only need to specify either the --work-tree \
+(i.e. /myproject) OR --git-dir (i.e. /myproject/.git), you don't need to use \
+both.
 
-If using the --config to specify a clog configuration TOML file NOT in the
-current working directory (meaning you need to use --work-tree or --git-dir)
-AND the TOML file is inside your project directory (i.e.
+If using the --config to specify a clog configuration TOML file NOT in the \
+current working directory (meaning you need to use --work-tree or --git-dir) \
+AND the TOML file is inside your project directory (i.e. \
 /myproject/.clog.toml) you do not need to use --work-tree or --git-dir.
-"#;
+";
 
 #[derive(Debug, Copy, Clone, Default, PartialEq, Eq, ValueEnum, EnumString, Display)]
 #[strum(serialize_all = "lowercase", ascii_case_insensitive)]
@@ -74,7 +74,7 @@ pub struct Args {
     pub from: Option<String>,
 
     /// The output format, defaults to markdown
-    #[arg(short = 'T', long, value_name = "STR")]
+    #[arg(short = 'T', long, value_name = "STR", default_value_t)]
     pub format: OutFormat,
 
     /// Increment major version by one (Sets minor and patch to 0)
@@ -122,11 +122,11 @@ pub struct Args {
     pub setversion: Option<String>,
 
     /// use latest tag as start (instead of --from)
-    #[arg(short, long, conflicts_with = "from")]
+    #[arg(short = 'F', long, conflicts_with = "from")]
     pub from_latest_tag: bool,
 
     /// The style of repository link to generate
-    #[arg(short, long, value_name = "STR", default_value = "github")]
+    #[arg(short, long, value_name = "STR", default_value_t)]
     pub link_style: LinkStyle,
 
     /// A previous changelog to prepend new changes to (this is like using the
