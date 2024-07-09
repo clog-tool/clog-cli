@@ -23,7 +23,7 @@ There are two ways to use `clog`, as a binary via the command line or as a libra
 
 ### Binary (Command Line)
 
-In order to use `clog` via the command line you must first obtain a binary by either compiling it yourself, or downlading and installing one of the precompiled binaries.
+In order to use `clog` via the command line you must first obtain a binary by either compiling it yourself, or downloading and installing one of the precompiled binaries.
 
 #### `cargo install`
 
@@ -87,7 +87,7 @@ Otherwise, ensure you have the `clog` binary in the directory which you operatin
 
 #### Using clog from the Command Line
 
-`clog` works by reading your `git` metadata and specially crafted commit messages and subjects to create a changelog. `clog` has the following options availble.
+`clog` works by reading your `git` metadata and specially crafted commit messages and subjects to create a changelog. `clog` has the following options available.
 
 ```sh
 USAGE:
@@ -104,7 +104,7 @@ FLAGS:
 OPTIONS:
     -C, --changelog <changelog>    A previous changelog to prepend new changes to (this is like
                                    using the same file for both --infile and --outfile and
-                                   should not be used in conjuction with either)
+                                   should not be used in conjunction with either)
     -c, --config <config>          The Clog Configuration TOML file to use (Defaults to
                                    '.clog.toml')**
     -T, --format <format>          The output format, defaults to markdown
@@ -175,7 +175,7 @@ subtitle = "my awesome title"
 link-style = "github"
 
 # The preferred way to set a constant changelog. This file will be read for old changelog
-# data, then prepended to for new changelog data. It's the equivilant to setting
+# data, then prepended to for new changelog data. It's the equivalent to setting
 # both infile and outfile to the same file.
 #
 # Do not use with outfile or infile fields!
@@ -223,7 +223,7 @@ MySection = ["mysec", "ms"]
 
 Now if you make a commit message such as `mysec(Component): some message` or `ms(Component): some message` there will be a new "MySection" section along side the "Features" and "Bug Fixes" areas.
 
-*NOTE:* Sections with spaces are suppported, such as `"My Special Section" = ["ms", "mysec"]`
+*NOTE:* Sections with spaces are supported, such as `"My Special Section" = ["ms", "mysec"]`
 
 ## Companion Projects
 

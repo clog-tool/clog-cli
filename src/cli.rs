@@ -236,8 +236,9 @@ impl Args {
         clog.repo = self.repository;
         clog.subtitle = self.subtitle;
         clog.link_style = self.link_style.into();
-        clog.to = self.to.to_owned();
         clog.out_format = self.format.into();
+
+        self.to.clone_into(&mut clog.to);
 
         debugln!("Returning clog:\n{:?}", clog);
 
