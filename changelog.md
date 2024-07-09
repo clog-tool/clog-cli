@@ -1,3 +1,25 @@
+<a name="0.10.0"></a>
+### 0.10.0 (2024-07-09)
+
+#### Breaking Changes
+
+* update MSRV to 1.74.1 ([f190944](https://github.com/clog-tool/clog-cli/commit/f190944))
+
+#### Documentation
+
+* **README.md**: update --help after migrating to clav v4 ([72a1aa1](https://github.com/clog-tool/clog-cli/commit/72a1aa1))
+* fix typos ([8e58db2](https://github.com/clog-tool/clog-cli/commit/8e58db2))
+
+#### Style Fixes
+
+* update edition to 2021 ([abe1a8b](https://github.com/clog-tool/clog-cli/commit/abe1a8b))
+* use same rustfmt config as clog-lib ([fea7545](https://github.com/clog-tool/clog-cli/commit/fea7545))
+
+#### Improvements
+
+* remove `time` dep ([bc6e283](https://github.com/clog-tool/clog-cli/commit/bc6e283))
+* Update deps and fix compiling errors ([813ce80](https://github.com/clog-tool/clog-cli/commit/813ce80))
+
 <a name="0.9.2"></a>
 ### 0.9.2 (2016-04-04)
 
