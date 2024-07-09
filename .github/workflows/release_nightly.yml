@@ -8,8 +8,7 @@ name: Nightly Release
 env:
   RELEASE_BIN: clog
   RELEASE_ADDS: >-
-    LICENSE-APACHE
-    LICENSE-MIT
+    LICENSE
     nightly-CHANGELOG.md
     README.md
 
@@ -58,7 +57,7 @@ jobs:
           SHA: ${{ steps.short-sha.outputs.sha }}
 
       - name: Remove previous Nightly Release
-        uses: dev-drprasad/delete-tag-and-release@v0.2.0
+        uses: dev-drprasad/delete-tag-and-release@v1.1
         with:
           delete_release: true
           tag_name: nightly
