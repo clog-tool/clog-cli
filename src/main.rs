@@ -6,6 +6,8 @@ extern crate semver;
 #[cfg(feature = "color")]
 extern crate ansi_term;
 
+use std::time::Instant;
+
 use clap::{App, Arg, ArgGroup, ArgMatches};
 
 use clog::{LinkStyle, Clog};
@@ -78,16 +80,15 @@ directory (meaning you need to use --work-tree or --git-dir) AND the TOML file i
 project directory (i.e. /myproject/.clog.toml) you do not need to use --work-tree or --git-dir.")
         .get_matches();
 
-    let start_nsec = time::get_time().nsec;
+    let start = Instant::now();
 
     let clog = from_matches(&matches).unwrap_or_else(|e| e.exit());
 
     if let Some(ref file) = clog.outfile {
         clog.write_changelog_to(file).unwrap_or_else(|e| e.exit());
 
-        let end_nsec = time::get_time().nsec;
-        let elapsed_mssec = (end_nsec - start_nsec) / 1000000;
-        println!("changelog written. (took {} ms)", elapsed_mssec);
+        let elapsed = start.elapsed();
+        println!("changelog written. (took {} ms)", elapsed.as_millis());
     } else {
         clog.write_changelog().unwrap_or_else(|e| e.exit());
     }
@@ -225,9 +226,6 @@ pub fn from_matches(matches: &ArgMatches) -> CliResult<Clog> {
 
     if matches.is_present("link-style") {
         clog.link_style = value_t!(matches.value_of("link-style"), LinkStyle)
-                              .unwrap_or(LinkStyle::Github);
-    }
-
     if let Some(subtitle) = matches.value_of("subtitle") {
         clog.subtitle = subtitle.to_owned();
     }
