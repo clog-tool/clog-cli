@@ -1,3 +1,5 @@
+#![allow(unused_macros)]
+
 // Convenience for writing to stderr thanks to https://github.com/BurntSushi
 macro_rules! wlnerr(
     ($($arg:tt)*) => ({
@@ -27,12 +29,12 @@ macro_rules! debug {
 
 #[cfg(not(feature = "debug"))]
 macro_rules! debugln {
-    ($fmt:expr) => ();
-    ($fmt:expr, $($arg:tt)*) => ();
+    ($fmt:expr) => {};
+    ($fmt:expr, $($arg:tt)*) => {};
 }
 
 #[cfg(not(feature = "debug"))]
 macro_rules! debug {
-    ($fmt:expr) => ();
-    ($fmt:expr, $($arg:tt)*) => ();
+    ($fmt:expr) => {};
+    ($fmt:expr, $($arg:tt)*) => {};
 }

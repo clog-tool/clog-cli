@@ -1,18 +1,21 @@
-use std::convert::From;
-use std::error::Error;
-use std::fmt::{Display, Formatter};
-use std::fmt::Result as FmtResult;
+use std::{
+    convert::From,
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 
 use clog::error::Error as ClogErr;
 
-use fmt::Format;
+use crate::fmt::Format;
+
+pub type CliResult<T> = Result<T, CliError>;
 
 #[derive(Debug)]
 #[allow(dead_code)]
 pub enum CliError {
     Semver(Box<dyn Error>, String),
     Generic(String),
-    Unknown
+    Unknown,
 }
 
 // Copies clog::error::Error;
@@ -41,23 +44,25 @@ impl CliError {
 
 impl Display for CliError {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "{} {}", Format::Error("error:"), self)
+        write!(
+            f,
+            "{} {}",
+            Format::Error("error:"),
+            match self {
+                CliError::Generic(d) => d,
+                CliError::Unknown => {
+                    "An unknown fatal error has occurred, please consider filing a bug-report!"
+                }
+                CliError::Semver(_, s) => s,
+            }
+        )
     }
 }
 
 impl Error for CliError {
-    fn description<'a>(&'a self) -> &'a str {
-        match *self {
-            CliError::Semver(_, ref s) => &*s,
-            CliError::Generic(ref d) => &*d,
-            CliError::Unknown =>
-                "An unknown fatal error has occurred, please consider filing a bug-report!",
-        }
-    }
-
     fn cause(&self) -> Option<&dyn Error> {
-        match *self {
-            CliError::Semver(ref e, _) => Some(&**e),
+        match self {
+            CliError::Semver(e, _) => Some(&**e),
             CliError::Generic(..) => None,
             CliError::Unknown => None,
         }
@@ -65,7 +70,5 @@ impl Error for CliError {
 }
 
 impl From<ClogErr> for CliError {
-    fn from(ce: ClogErr) -> Self {
-        CliError::Generic(ce.to_string().to_owned())
-    }
+    fn from(ce: ClogErr) -> Self { CliError::Generic(ce.to_string().to_owned()) }
 }
