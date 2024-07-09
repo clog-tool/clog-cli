@@ -2,7 +2,6 @@ name: CI-PR
 
 on:
   pull_request:
-    #    branches: [master, main]
 
 concurrency:
   group: ci-pr-${{ github.ref }}

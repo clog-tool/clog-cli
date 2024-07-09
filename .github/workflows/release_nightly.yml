@@ -28,9 +28,6 @@ jobs:
           override: true
           target: x86_64-unknown-linux-musl
 
-      - name: Install cc
-        run: sudo apt-get update && sudo apt-get install --yes gcc
-
       - name: Compile
         uses: actions-rs/cargo@v1
         with:
