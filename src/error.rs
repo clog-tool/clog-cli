@@ -1,7 +1,8 @@
-use std::convert::From;
-use std::error::Error;
-use std::fmt::Result as FmtResult;
-use std::fmt::{Display, Formatter};
+use std::{
+    convert::From,
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 
 use clog::error::Error as ClogErr;
 
@@ -67,7 +68,5 @@ impl Error for CliError {
 }
 
 impl From<ClogErr> for CliError {
-    fn from(ce: ClogErr) -> Self {
-        CliError::Generic(ce.to_string().to_owned())
-    }
+    fn from(ce: ClogErr) -> Self { CliError::Generic(ce.to_string().to_owned()) }
 }

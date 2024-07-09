@@ -8,10 +8,8 @@ extern crate ansi_term;
 
 use std::time::Instant;
 
-use clap::{App, Arg, ArgGroup, ArgMatches};
-
-use clog::{LinkStyle, Clog};
-use clog::fmt::ChangelogFormat;
+use clap::{crate_version, value_t, value_t_or_exit, App, Arg, ArgGroup, ArgMatches};
+use clog::{fmt::ChangelogFormat, Clog, LinkStyle};
 
 #[macro_use]
 mod macros;
