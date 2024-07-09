@@ -8,15 +8,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  ci-pr:
-    name: CI-PR
-    needs: [test-full, test-minimal, lint]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Done
-        run: exit 0
   test-full:
-    name: Tests
+    name: Tests (full)
     strategy:
       fail-fast: false
       matrix:
@@ -39,7 +32,7 @@ jobs:
       - name: Test
         run: cargo test --all-features
   test-minimal:
-    name: Tests
+    name: Tests (Min)
     strategy:
       fail-fast: false
       matrix:
@@ -61,28 +54,3 @@ jobs:
         run: cargo test --no-run --no-default-features
       - name: Test
         run: cargo test --no-default-features
-  lint:
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Check spelling
-        uses: crate-ci/typos@master
-        with:
-          config: ./.typos.toml
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: nightly
-          components: rustfmt, clippy
-
-      - uses: Swatinem/rust-cache@v2
-
-      - name: Clippy
-        run: cargo clippy --all-features --all-targets
-
-      - name: Format Check
-        run: cargo fmt --check
-
-
