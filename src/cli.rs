@@ -145,24 +145,21 @@ impl Args {
                 self.work_tree,
                 self.git_dir
             );
-            // use --config --work-tree --git-dir
-            Clog::with_all(
-                self.git_dir.as_ref().unwrap(),
-                self.work_tree.as_ref().unwrap(),
-                &self.config,
-            )?
+            Clog::new()?
+                .git_dir(self.git_dir.as_ref().unwrap())
+                .git_work_tree(self.work_tree.as_ref().unwrap())
         } else if let Some(dir) = &self.work_tree {
             debugln!("User passed in working dir: {:?}", dir);
             // use --config --work-tree
-            Clog::with_dir_and_file(dir, &self.config)?
+            Clog::from_config(&self.config)?.git_work_tree(dir)
         } else if let Some(dir) = &self.git_dir {
             debugln!("User passed in git dir: {:?}", dir);
             // use --config --git-dir
-            Clog::with_dir_and_file(dir, &self.config)?
+            Clog::from_config(&self.config)?.git_dir(dir)
         } else {
             debugln!("User only passed config");
             // use --config only
-            Clog::from_file(&self.config)?
+            Clog::from_config(&self.config)?
         };
 
         // compute version early, so we can exit on error
@@ -170,7 +167,7 @@ impl Args {
             // less typing later...
             let (major, minor, patch) = (self.major, self.minor, self.patch);
             if self.setversion.is_some() {
-                self.setversion.as_ref().unwrap().to_owned()
+                self.setversion
             } else if major || minor || patch {
                 let mut had_v = false;
                 let v_string = clog.get_latest_tag_ver();
@@ -200,7 +197,7 @@ impl Args {
                             }
                             _ => unreachable!(),
                         }
-                        format!("{}{}", if had_v { "v" } else { "" }, v)
+                        Some(format!("{}{v}", if had_v { "v" } else { "" }))
                     }
                     Err(e) => {
                         return Err(CliError::Semver(
@@ -218,17 +215,9 @@ impl Args {
         };
 
         if let Some(from) = &self.from {
-            clog.from = from.to_owned();
+            clog.from = Some(from.to_owned());
         } else if self.from_latest_tag {
-            clog.from = clog.get_latest_tag();
-        }
-
-        if let Some(repo) = &self.repository {
-            clog.repo = repo.to_owned();
-        }
-
-        if let Some(subtitle) = &self.subtitle {
-            clog.subtitle = subtitle.to_owned();
+            clog.from = Some(clog.get_latest_tag()?);
         }
 
         if let Some(file) = &self.outfile {
@@ -244,6 +233,8 @@ impl Args {
             clog.outfile = Some(file.to_owned());
         }
 
+        clog.repo = self.repository;
+        clog.subtitle = self.subtitle;
         clog.link_style = self.link_style.into();
         clog.to = self.to.to_owned();
         clog.out_format = self.format.into();
