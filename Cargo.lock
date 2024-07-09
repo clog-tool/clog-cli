@@ -78,7 +78,6 @@ dependencies = [
  "clap",
  "clog",
  "semver",
- "time",
 ]
 
 [[package]]
