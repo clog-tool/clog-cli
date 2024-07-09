@@ -21,7 +21,7 @@ mod fmt;
 use error::CliError;
 
 pub type CliResult<T> = Result<T, CliError>;
-const CLOG_CONFIG_FILE: &'static str = ".clog.toml";
+const CLOG_CONFIG_FILE: &str = ".clog.toml";
 
 fn main() {
     let styles = LinkStyle::variants();
@@ -164,10 +164,10 @@ pub fn from_matches(matches: &ArgMatches) -> CliResult<Clog> {
         } else if major || minor || patch {
             let mut had_v = false;
             let v_string = clog.get_latest_tag_ver();
-            let first_char = v_string.chars().nth(0).unwrap_or(' ');
+            let first_char = v_string.chars().next().unwrap_or(' ');
             let v_slice = if first_char == 'v' || first_char == 'V' {
                 had_v = true;
-                v_string.trim_start_matches(|c| c == 'v' || c == 'V')
+                v_string.trim_start_matches(['v', 'V'])
             } else {
                 &v_string[..]
             };
