@@ -90,48 +90,41 @@ Otherwise, ensure you have the `clog` binary in the directory which you operatin
 `clog` works by reading your `git` metadata and specially crafted commit messages and subjects to create a changelog. `clog` has the following options available.
 
 ```sh
-USAGE:
-    clog [FLAGS] [OPTIONS]
+Usage: clog [OPTIONS]
 
-FLAGS:
-    -F, --from-latest-tag    use latest tag as start (instead of --from)
-    -h, --help               Prints help information
-    -M, --major              Increment major version by one (Sets minor and patch to 0)
-    -m, --minor              Increment minor version by one (Sets patch to 0)
-    -p, --patch              Increment patch version by one
-    -V, --version            Prints version information
+Options:
+  -r, --repository <URL>  Repository used for generating commit and issue links (without the .git, e.g.
+                          https://github.com/thoughtram/clog)
+  -f, --from <COMMIT>     e.g. 12a8546
+  -T, --format <STR>      The output format, defaults to markdown [default: markdown] [possible values: markdown,
+                          json]
+  -M, --major             Increment major version by one (Sets minor and patch to 0)
+  -g, --git-dir <PATH>    Local .git directory (defaults to "$(pwd)/.git")
+  -w, --work-tree <PATH>  Local working tree of the git project (defaults to "$(pwd)")
+  -m, --minor             Increment minor version by one (Sets patch to 0)
+  -p, --patch             Increment patch version by one
+  -s, --subtitle <STR>    
+  -t, --to <COMMIT>       e.g. 8057684 [default: HEAD]
+  -o, --outfile <PATH>    Where to write the changelog (Defaults to stdout when omitted)
+  -c, --config <COMMIT>   The Clog Configuration TOML file to use [default: .clog.toml]
+  -i, --infile <PATH>     A changelog to append to, but *NOT* write to (Useful in conjunction with --outfile)
+      --setversion <VER>  e.g. 1.0.1
+  -F, --from-latest-tag   use latest tag as start (instead of --from)
+  -l, --link-style <STR>  The style of repository link to generate [default: github] [possible values: github,
+                          gitlab, stash, cgit]
+  -C, --changelog <PATH>  A previous changelog to prepend new changes to (this is like using the same file for both
+                          --infile and --outfile and should not be used in conjunction with either)
+  -h, --help              Print help
+  -V, --version           Print version
 
-OPTIONS:
-    -C, --changelog <changelog>    A previous changelog to prepend new changes to (this is like
-                                   using the same file for both --infile and --outfile and
-                                   should not be used in conjunction with either)
-    -c, --config <config>          The Clog Configuration TOML file to use (Defaults to
-                                   '.clog.toml')**
-    -T, --format <format>          The output format, defaults to markdown
-                                   (valid values: markdown, json)
-    -f, --from <from>              e.g. 12a8546
-    -g, --git-dir <gitdir>         Local .git directory (defaults to current dir + '.git')*
-    -i, --infile <infile>          A changelog to append to, but *NOT* write to (Useful in
-                                   conjunction with --outfile)
-    -o, --outfile <outfile>        Where to write the changelog (Defaults to stdout when omitted)
-    -r, --repository <repo>        Repository used for generating commit and issue links
-                                   (without the .git, e.g. https://github.com/clog-tool/clog-cli)
-    -l, --link-style <style>       The style of repository link to generate
-                                   (Defaults to github) [values: Github Gitlab Stash]
-    -s, --subtitle <subtitle>      e.g. "Crazy Release Title"
-    -t, --to <to>                  e.g. 8057684 (Defaults to HEAD when omitted)
-        --setversion <ver>         e.g. 1.0.1
-    -w, --work-tree <workdir>      Local working tree of the git project
-                                   (defaults to current dir)*
 
-* If your .git directory is a child of your project directory (most common, such as
-/myproject/.git) AND not in the current working directory (i.e you need to use --work-tree or
---git-dir) you only need to specify either the --work-tree (i.e. /myproject) OR --git-dir (i.e.
-/myproject/.git), you don't need to use both.
+If your .git directory is a child of your project directory (most common, such as /myproject/.git) AND not in the
+current working directory (i.e you need to use --work-tree or --git-dir) you only need to specify either the
+--work-tree (i.e. /myproject) OR --git-dir (i.e. /myproject/.git), you don't need to use both.
 
-** If using the --config to specify a clog configuration TOML file NOT in the current working
-directory (meaning you need to use --work-tree or --git-dir) AND the TOML file is inside your
-project directory (i.e. /myproject/.clog.toml) you do not need to use --work-tree or --git-dir.
+If using the --config to specify a clog configuration TOML file NOT in the current working directory (meaning you
+need to use --work-tree or --git-dir) AND the TOML file is inside your project directory (i.e.
+/myproject/.clog.toml) you do not need to use --work-tree or --git-dir.
 ```
 
 #### Try it!
