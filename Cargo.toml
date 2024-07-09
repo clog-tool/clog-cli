@@ -13,7 +13,7 @@ exclude = ["docs/*"]
 name = "clog"
 
 [dependencies]
-semver = "0.6.0"
+semver = "1.0.0"
 clap = "2.21.1"
 time = "0.1.32"
 clog = "0.9.1"
