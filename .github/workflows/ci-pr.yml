@@ -1,4 +1,4 @@
-name: CI-PR
+name: Tests
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ concurrency:
 
 jobs:
   test-full:
-    name: Tests (full)
+    name: Full
     strategy:
       fail-fast: false
       matrix:
@@ -32,7 +32,7 @@ jobs:
       - name: Test
         run: cargo test --all-features
   test-minimal:
-    name: Tests (Min)
+    name: Min
     strategy:
       fail-fast: false
       matrix:

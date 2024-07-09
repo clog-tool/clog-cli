@@ -2,6 +2,7 @@ name: Lint
 
 on:
   pull_request:
+
 jobs:
   lint:
     name: Lint
@@ -36,7 +37,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.67.1
+          toolchain: 1.74.1 # msrv
 
       - name: Check
         run: cargo check
