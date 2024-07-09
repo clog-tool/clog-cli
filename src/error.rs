@@ -6,7 +6,7 @@ use std::{
 
 use clog::error::Error as ClogErr;
 
-use fmt::Format;
+use crate::fmt::Format;
 
 pub type CliResult<T> = Result<T, CliError>;
 

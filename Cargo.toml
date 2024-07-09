@@ -4,6 +4,7 @@ readme = "README.md"
 keywords = ["git", "log", "changelog", "parser", "parse"]
 license = "MIT"
 name = "clog-cli"
+edition = "2021"
 version = "0.9.3"
 authors = ["Christoph Burgdorf <christoph.burgdorf@bvsn.org>"]
 description = "A conventional changelog for the rest of us"
