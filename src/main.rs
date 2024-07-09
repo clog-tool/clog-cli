@@ -1,8 +1,7 @@
 use std::time::Instant;
 
 use clap::{crate_version, value_t, value_t_or_exit, App, Arg, ArgGroup, ArgMatches};
-use clog::fmt::ChangelogFormat;
-use clog::{Clog, LinkStyle};
+use clog::{fmt::ChangelogFormat, Clog, LinkStyle};
 
 #[macro_use]
 mod macros;
