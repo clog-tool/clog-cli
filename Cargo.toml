@@ -11,6 +11,7 @@ exclude = ["docs/*"]
 
 [[bin]]
 name = "clog"
+path = "src/main.rs"
 
 [dependencies]
 semver = "1.0.0"

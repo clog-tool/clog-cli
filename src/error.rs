@@ -41,24 +41,25 @@ impl CliError {
 
 impl Display for CliError {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "{} {}", Format::Error("error:"), self.description())
+        write!(
+            f,
+            "{} {}",
+            Format::Error("error:"),
+            match self {
+                CliError::Generic(d) => d,
+                CliError::Unknown => {
+                    "An unknown fatal error has occurred, please consider filing a bug-report!"
+                }
+                CliError::Semver(_, s) => s,
+            }
+        )
     }
 }
 
 impl Error for CliError {
-    fn description<'a>(&'a self) -> &'a str {
-        match *self {
-            CliError::Semver(_, ref s) => &*s,
-            CliError::Generic(ref d) => &*d,
-            CliError::Unknown => {
-                "An unknown fatal error has occurred, please consider filing a bug-report!"
-            }
-        }
-    }
-
     fn cause(&self) -> Option<&dyn Error> {
-        match *self {
-            CliError::Semver(ref e, _) => Some(&**e),
+        match self {
+            CliError::Semver(e, _) => Some(&**e),
             CliError::Generic(..) => None,
             CliError::Unknown => None,
         }
